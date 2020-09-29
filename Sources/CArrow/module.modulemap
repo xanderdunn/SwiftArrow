@@ -1,0 +1,8 @@
+module CArrow [system] {
+	header "arrow_bridging.h"
+
+	link "gobject-2.0"
+	link "glib-2.0"
+
+	export *
+}
