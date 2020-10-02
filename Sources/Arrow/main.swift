@@ -1,12 +1,6 @@
 import Foundation
 import CArrow
 
-/*func createSchema(columns: [String]) {*/
-    /*if let gArrowSchema = garrow_schema_new(columns) {*/
-        /*print(gArrowSchema)*/
-    /*}*/
-/*}*/
-
 enum ArrowError: Error {
     case invalidArrayCreation(String)
     case invalidTableCreation(String)
@@ -18,11 +12,15 @@ enum ArrowError: Error {
 }
 
 func gArrowArrayToSwift(_ array: UnsafeMutablePointer<GArrowArray>) -> [Double] {
+    #if canImport(Darwin)
     let n: Int64 = garrow_array_get_length(array)
+    #else
+    let n: Int = garrow_array_get_length(array)
+    #endif
     var values: [Double] = []
     for i in 0..<n {
-      let value: Double = garrow_double_array_get_value(GARROW_DOUBLE_ARRAY(array), i)
-      values.append(value)
+        let value: Double = garrow_double_array_get_value(GARROW_DOUBLE_ARRAY(array), i)
+        values.append(value)
     }
     return values
 }
@@ -41,7 +39,12 @@ func doubleArrayToGArray(values: [Double]) throws -> UnsafeMutablePointer<GArrow
         var values = values
         var error: UnsafeMutablePointer<GError>? = nil
         var result: gboolean
-        result = garrow_double_array_builder_append_values(arrayBuilder, &values, Int64(values.count), [], 0, &error)
+        #if canImport(Darwin)
+        let numValues: Int64 = Int64(values.count)
+        #else
+        let numValues: Int = values.count
+        #endif
+        result = garrow_double_array_builder_append_values(arrayBuilder, &values, numValues, [], 0, &error)
         if result == 0 {
             let errorString: String = error != nil ? String(cString: error!.pointee.message) : ""
             g_error_free(error)
@@ -151,7 +154,7 @@ func testCreateAndSaveToFile() {
     do {
         // Create arrays
         let values: [Double] = [1.0, 2.22, 45.66, 916661.17171]
-        let values2: [Double] = [23.3, 233.3, 2323.3, 23233.3]
+        let values2: [Double] = [23.7777777, 233.3, 2323.3, 23233.3]
         if let result = try doubleArrayToGArray(values: values), let result2 = try doubleArrayToGArray(values: values2) {
             let values = gArrowArrayToSwift(result)
             let values2 = gArrowArrayToSwift(result2)
@@ -159,10 +162,9 @@ func testCreateAndSaveToFile() {
             print(values2)
             // Create table from arrays
             let table = try gArraysToGTable(arrays: [result, result2], columns: ["result", "result2"])
-            let iTHColumn: Int32 = 1
-            if let tableArray0 = garrow_table_get_column_data(table, iTHColumn),
-               let gArray = gArrowChunkedArrayToGArrow(tableArray0) {
-                   print("\(iTHColumn)th column pulled from table:", gArrowArrayToSwift(gArray))
+            if let table = table {
+                print("Columns of created table:")
+                try printTable(gTable: table)
             }
             // Save Table to feather file
             let outputPath = "./test.feather"
@@ -186,7 +188,6 @@ func gArrowTableGetSchema(_ gTable: UnsafeMutablePointer<GArrowTable>) throws ->
             let fieldName = garrow_field_get_name(GARROW_FIELD(fields.pointee.data))
             if let fieldName = fieldName {
                 let string = String(cString: fieldName)
-                print(string)
                 columnNames.append(string)
             } else {
                 throw ArrowError.invalidFields("Couldn't get field name at index \(i)")
@@ -233,8 +234,8 @@ func testLoadFromFile() {
 }
 
 func main() {
-    /*testCreateAndSaveToFile()*/
-    testLoadFromFile()
+    testCreateAndSaveToFile()
+    /*testLoadFromFile()*/
 }
 
 // TODO: Expand types that can be handled to String, Int, and Bool
