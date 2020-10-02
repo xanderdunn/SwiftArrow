@@ -17,3 +17,4 @@
 - `pkg-config --cflags arrow-glib`
 - Apache Arrow GLib interface documentation [here](https://arrow.apache.org/docs/c_glib/arrow-glib/)
 - Apache Arrow GLib example code [here](https://github.com/apache/arrow/tree/master/c_glib/example)
+- Note that the tests pass on Swift 5.3-RELEASE but do not build on Swift for Tensorflow 0.10. The library itself does successfully build on Swift for Tensorflow 0.10.

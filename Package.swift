@@ -6,6 +6,9 @@ let package = Package(
     platforms: [
        .macOS(.v10_15)
     ],
+    products: [
+        .library(name: "Arrow", targets: ["Arrow"])
+    ],
     targets: [
         .systemLibrary(name: "CArrow", pkgConfig: "arrow-glib",
             providers: [
