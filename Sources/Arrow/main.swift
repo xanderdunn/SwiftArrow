@@ -114,6 +114,9 @@ func saveGTableToFeather(_ gTable: UnsafeMutablePointer<GArrowTable>, outputPath
     g_object_unref(properties)
 }
 
+/**
+Load table from file: GArrowFeatherFileReader
+*/
 func loadGTableFromFeather(filePath: String) throws -> UnsafeMutablePointer<GArrowTable>? {
     var error: UnsafeMutablePointer<GError>? = nil
     let path = filePath.cString(using: .utf8)
@@ -197,7 +200,21 @@ func gArrowTableGetSchema(_ gTable: UnsafeMutablePointer<GArrowTable>) throws ->
     throw ArrowError.invalidFields("Could not get fields from schema")
 }
 
-func printTable(gtable: UnsafeMutablePointer<GArrowTable>) {
+func gArrowTableColumnToSwift(gTable: UnsafeMutablePointer<GArrowTable>, column: Int32) throws -> [Double] {
+    if let chunkedArray = garrow_table_get_column_data(gTable, column),
+       let gArray = gArrowChunkedArrayToGArrow(chunkedArray) {
+           return gArrowArrayToSwift(gArray)
+    }
+    throw ArrowError.failedRead("Couldn't get column from GArrowTable")
+}
+
+// TODO: Only print the first n rows
+func printTable(gTable: UnsafeMutablePointer<GArrowTable>) throws {
+    let numColumns = garrow_table_get_n_columns(gTable)
+    for i in 0..<numColumns {
+        let swiftArray = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+        print(swiftArray)
+    }
 }
 
 func testLoadFromFile() {
@@ -208,11 +225,7 @@ func testLoadFromFile() {
         if let table = table {
             let columns = try gArrowTableGetSchema(table)
             print("columns: \(columns)")
-        }
-        let iTHColumn: Int32 = 1
-        if let tableArray0 = garrow_table_get_column_data(table, iTHColumn),
-           let gArray = gArrowChunkedArrayToGArrow(tableArray0) {
-               print("\(iTHColumn)th column pulled from table:", gArrowArrayToSwift(gArray))
+            try printTable(gTable: table)
         }
     } catch {
         print("Failed to load table \(error)")
@@ -222,7 +235,6 @@ func testLoadFromFile() {
 func main() {
     /*testCreateAndSaveToFile()*/
     testLoadFromFile()
-    // TODO: Load table from file: GArrowFeatherFileReader
 }
 
 // TODO: Expand types that can be handled to String, Int, and Bool
