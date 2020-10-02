@@ -13,6 +13,6 @@ let package = Package(
                 .apt(["libarrow-glib-dev"])
             ]),
         .target(name: "Arrow", dependencies: ["CArrow"]),
-        /*.testTarget(name: "GLibTests", dependencies: ["GLib"]),*/
+        .testTarget(name: "ArrowTests", dependencies: ["Arrow"])
     ]
 )

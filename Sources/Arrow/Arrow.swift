@@ -1,4 +1,5 @@
 import Foundation
+
 import CArrow
 
 enum ArrowError: Error {
@@ -149,35 +150,6 @@ func loadGTableFromFeather(filePath: String) throws -> UnsafeMutablePointer<GArr
     return table
 }
 
-func testCreateAndSaveToFile() {
-    print("Creating arrays, table from arrays, and saving table to .feather file:")
-    do {
-        // Create arrays
-        let values: [Double] = [1.0, 2.22, 45.66, 916661.17171]
-        let values2: [Double] = [23.7777777, 233.3, 2323.3, 23233.3]
-        if let result = try doubleArrayToGArray(values: values), let result2 = try doubleArrayToGArray(values: values2) {
-            let values = gArrowArrayToSwift(result)
-            let values2 = gArrowArrayToSwift(result2)
-            print(values)
-            print(values2)
-            // Create table from arrays
-            let table = try gArraysToGTable(arrays: [result, result2], columns: ["result", "result2"])
-            if let table = table {
-                print("Columns of created table:")
-                try printTable(gTable: table)
-            }
-            // Save Table to feather file
-            let outputPath = "./test.feather"
-            if let table = table {
-                try saveGTableToFeather(table, outputPath: outputPath)
-                print("Saved to \(outputPath)")
-            }
-        }
-    } catch {
-        print("Failed \(error)")
-    }
-}
-
 func gArrowTableGetSchema(_ gTable: UnsafeMutablePointer<GArrowTable>) throws -> [String] {
     let schema = garrow_table_get_schema(gTable)
     let numFields = garrow_schema_n_fields(schema)
@@ -210,34 +182,10 @@ func gArrowTableColumnToSwift(gTable: UnsafeMutablePointer<GArrowTable>, column:
 }
 
 // TODO: Only print the first n rows
-func printTable(gTable: UnsafeMutablePointer<GArrowTable>) throws {
+public func printTable(gTable: UnsafeMutablePointer<GArrowTable>) throws {
     let numColumns = garrow_table_get_n_columns(gTable)
     for i in 0..<numColumns {
         let swiftArray = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
         print(swiftArray)
     }
 }
-
-func testLoadFromFile() {
-    print("Loading feather file from disk and printing a column:")
-    let filePath = "./test.feather"
-    do {
-        let table = try loadGTableFromFeather(filePath: filePath)
-        if let table = table {
-            let columns = try gArrowTableGetSchema(table)
-            print("columns: \(columns)")
-            try printTable(gTable: table)
-        }
-    } catch {
-        print("Failed to load table \(error)")
-    }
-}
-
-func main() {
-    testCreateAndSaveToFile()
-    /*testLoadFromFile()*/
-}
-
-// TODO: Expand types that can be handled to String, Int, and Bool
-
-main()
