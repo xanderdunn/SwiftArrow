@@ -3,5 +3,5 @@ import XCTest
 import ArrowTests
 
 var tests = [XCTestCaseEntry]()
-tests += ArrowLibTests.allTests()
+tests += ArrowTests.allTests()
 XCTMain(tests)

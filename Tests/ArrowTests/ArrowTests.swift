@@ -9,7 +9,7 @@ final class ArrowLibTests: XCTestCase {
     let values2: [Double] = [23.7777777, 233.3, 2323.3, 23233.3]
     let columnNames: [String] = ["result", "result2"]
 
-    func testCreateAndSaveToFile() {
+    func testCreateAndSaveToFile() throws {
         print("Creating arrays, table from arrays, and saving table to .feather file:")
         do {
             // Create arrays
@@ -43,7 +43,7 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
-    func testLoadFromFile() {
+    func testLoadFromFile() throws {
         print("Loading feather file from disk and printing a column:")
         let filePath = "./test.feather"
         do {
