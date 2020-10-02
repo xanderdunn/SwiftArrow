@@ -11,6 +11,10 @@ enum ArrowError: Error {
     case invalidArrayCreation(String)
     case invalidTableCreation(String)
     case failedFeatherSave(String)
+    case invalidFeatherReader(String)
+    case invalidInputStream(String)
+    case failedRead(String)
+    case invalidFields(String)
 }
 
 func gArrowArrayToSwift(_ array: UnsafeMutablePointer<GArrowArray>) -> [Double] {
@@ -26,7 +30,6 @@ func gArrowArrayToSwift(_ array: UnsafeMutablePointer<GArrowArray>) -> [Double] 
 func gArrowChunkedArrayToGArrow(_ chunkedArray: UnsafeMutablePointer<GArrowChunkedArray>) -> 
                                                                                 UnsafeMutablePointer<GArrowArray>? {
     let numChunks = garrow_chunked_array_get_n_chunks(chunkedArray)
-    print(numChunks)
     // TODO: Support arbitrary chunks
     assert(numChunks == 1) // Only support single chunk arrays right now
     let gArrowArray = garrow_chunked_array_get_chunk(chunkedArray, 0)
@@ -111,7 +114,37 @@ func saveGTableToFeather(_ gTable: UnsafeMutablePointer<GArrowTable>, outputPath
     g_object_unref(properties)
 }
 
+func loadGTableFromFeather(filePath: String) throws -> UnsafeMutablePointer<GArrowTable>? {
+    var error: UnsafeMutablePointer<GError>? = nil
+    let path = filePath.cString(using: .utf8)
+    let inputStream = garrow_memory_mapped_input_stream_new(path, &error)
+    if let error = error {
+        let errorString: String = String(cString: error.pointee.message)
+        g_error_free(error)
+        throw ArrowError.invalidInputStream(errorString)
+    }
+    let reader = garrow_feather_file_reader_new(GARROW_SEEKABLE_INPUT_STREAM(inputStream), &error)
+    if let error = error {
+        let errorString: String = String(cString: error.pointee.message)
+        g_error_free(error)
+        g_object_unref(inputStream)
+        throw ArrowError.invalidFeatherReader(errorString)
+    }
+    let table = garrow_feather_file_reader_read(reader, &error)
+    if let error = error {
+        let errorString: String = String(cString: error.pointee.message)
+        g_error_free(error)
+        g_object_unref(reader)
+        g_object_unref(inputStream)
+        throw ArrowError.failedRead(errorString)
+    }
+    g_object_unref(reader)
+    g_object_unref(inputStream)
+    return table
+}
+
 func testCreateAndSaveToFile() {
+    print("Creating arrays, table from arrays, and saving table to .feather file:")
     do {
         // Create arrays
         let values: [Double] = [1.0, 2.22, 45.66, 916661.17171]
@@ -140,14 +173,58 @@ func testCreateAndSaveToFile() {
     }
 }
 
+func gArrowTableGetSchema(_ gTable: UnsafeMutablePointer<GArrowTable>) throws -> [String] {
+    let schema = garrow_table_get_schema(gTable)
+    let numFields = garrow_schema_n_fields(schema)
+    let fields = garrow_schema_get_fields(schema)
+    if var fields = fields {
+        var columnNames: [String] = []
+        for i in 0..<numFields {
+            let fieldName = garrow_field_get_name(GARROW_FIELD(fields.pointee.data))
+            if let fieldName = fieldName {
+                let string = String(cString: fieldName)
+                print(string)
+                columnNames.append(string)
+            } else {
+                throw ArrowError.invalidFields("Couldn't get field name at index \(i)")
+            }
+            if i < numFields - 1 {
+                fields = fields.pointee.next
+            }
+        }
+        return columnNames
+    }
+    throw ArrowError.invalidFields("Could not get fields from schema")
+}
+
+func printTable(gtable: UnsafeMutablePointer<GArrowTable>) {
+}
+
 func testLoadFromFile() {
+    print("Loading feather file from disk and printing a column:")
+    let filePath = "./test.feather"
+    do {
+        let table = try loadGTableFromFeather(filePath: filePath)
+        if let table = table {
+            let columns = try gArrowTableGetSchema(table)
+            print("columns: \(columns)")
+        }
+        let iTHColumn: Int32 = 1
+        if let tableArray0 = garrow_table_get_column_data(table, iTHColumn),
+           let gArray = gArrowChunkedArrayToGArrow(tableArray0) {
+               print("\(iTHColumn)th column pulled from table:", gArrowArrayToSwift(gArray))
+        }
+    } catch {
+        print("Failed to load table \(error)")
+    }
 }
 
 func main() {
-    print("Start")
-    testCreateAndSaveToFile()
+    /*testCreateAndSaveToFile()*/
+    testLoadFromFile()
     // TODO: Load table from file: GArrowFeatherFileReader
-    print("Done")
 }
+
+// TODO: Expand types that can be handled to String, Int, and Bool
 
 main()
