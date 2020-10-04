@@ -86,8 +86,21 @@ final class ArrowLibTests: XCTestCase {
         try testCreateAndSaveToFile(values1: int64Values1, values2: int64Values2, columnNames: int64ColumnNames)
     }
 
-    func testLoadInt64FromFile() throws {
+    func testLoadInt64sFromFile() throws {
         try testLoadFromFile(values1: int64Values1, values2: int64Values2, columnNames: int64ColumnNames)
+    }
+
+    // BOOLs
+    let boolValues1: [Bool] = [true, true, false, false]
+    let boolValues2: [Bool] = [false, false, false, true]
+    let boolColumnNames = ["boolColumn1", "boolColumn2"]
+
+    func testCreateAndSaveBoolsToFile() throws {
+        try testCreateAndSaveToFile(values1: boolValues1, values2: boolValues2, columnNames: boolColumnNames)
+    }
+
+    func testLoadBoolsFromFile() throws {
+        try testLoadFromFile(values1: boolValues1, values2: boolValues2, columnNames: boolColumnNames)
     }
 
     // STRINGS
@@ -108,6 +121,10 @@ final class ArrowLibTests: XCTestCase {
         ("testLoadDoublesFromFile", testLoadDoublesFromFile),
         ("testCreateAndSaveFloatsToFile", testCreateAndSaveFloatsToFile),
         ("testLoadFloatsFromFile", testLoadFloatsFromFile),
+        ("testCreateAndSaveInt64sToFile", testCreateAndSaveInt64sToFile),
+        ("testLoadInt64sFromFile", testLoadInt64sFromFile),
+        ("testCreateAndSaveBoolsToFile", testCreateAndSaveBoolsToFile),
+        ("testLoadBoolsFromFile", testLoadBoolsFromFile),
         ("testCreateAndSaveStringsToFile", testCreateAndSaveStringsToFile),
         ("testLoadStringFromFile", testLoadStringFromFile)
     ]
