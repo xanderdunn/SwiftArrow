@@ -7,11 +7,11 @@ final class ArrowLibTests: XCTestCase {
 
     let columnNames: [String] = ["column1", "column2"]
 
-    func testCreateAndSaveToFile<T: ArrowSupportedType>(values1: [T], values2: [T], type: T.Type) throws {
+    func testCreateAndSaveToFile<T: ArrowArrayElement>(values1: [T], values2: [T], type: T.Type) throws {
         print("Creating arrays, table from arrays, and saving table to .feather file:")
         // Create arrays
-        if let result = try arrayToGArray(values: values1),
-           let result2 = try arrayToGArray(values: values2) {
+        if let result = try type.createGArrowArray(array: values1),
+           let result2 = try type.createGArrowArray(array: values2) {
             let valuesDecoded: [T] = try gArrowArrayToSwift(result)
             XCTAssertEqual(valuesDecoded, values1)
             let values2Decoded: [T] = try gArrowArrayToSwift(result2)
@@ -35,7 +35,7 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
-    func testLoadFromFile<T: ArrowSupportedType>(values1: [T], values2: [T], type: T.Type) throws {
+    func testLoadFromFile<T: ArrowArrayElement>(values1: [T], values2: [T], type: T.Type) throws {
         print("Loading feather file from disk and printing a column:")
         let filePath = "./test\(type).feather"
         let table = try loadGTableFromFeather(filePath: filePath)

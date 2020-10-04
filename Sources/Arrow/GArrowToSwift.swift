@@ -12,7 +12,7 @@ func throwUnsupportedDataType(dataType: UnsafeMutablePointer<GArrowDataType>?, s
     throw ArrowError.unsupportedDataType(errorString)
 }
 
-func gArrowArrayToSwift<T: ArrowSupportedType>(_ array: UnsafeMutablePointer<GArrowArray>) throws -> [T] {
+func gArrowArrayToSwift<T: ArrowArrayElement>(_ array: UnsafeMutablePointer<GArrowArray>) throws -> [T] {
     #if canImport(Darwin)
     let n: Int64 = garrow_array_get_length(array)
     #else
@@ -36,7 +36,7 @@ func gArrowArrayToSwift<T: ArrowSupportedType>(_ array: UnsafeMutablePointer<GAr
     return values
 }
 
-func gArrowTableColumnToSwift<T: ArrowSupportedType>(gTable: UnsafeMutablePointer<GArrowTable>,
+func gArrowTableColumnToSwift<T: ArrowArrayElement>(gTable: UnsafeMutablePointer<GArrowTable>,
                                                      column: Int32) throws -> [T] {
     if let chunkedArray = garrow_table_get_column_data(gTable, column),
        let gArray = gArrowChunkedArrayToGArrow(chunkedArray) {
