@@ -115,8 +115,8 @@ extension Float: ArrowArrayElement {
     }
 }
 
-extension Int64: ArrowArrayElement {
-    static func toGArrowArray(array: [Int64]) throws -> UnsafeMutablePointer<GArrowArray>? {
+extension Int: ArrowArrayElement {
+    static func toGArrowArray(array: [Int]) throws -> UnsafeMutablePointer<GArrowArray>? {
         var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         let arrayBuilder: UnsafeMutablePointer<GArrowInt64ArrayBuilder>? = garrow_int64_array_builder_new()
@@ -125,7 +125,11 @@ extension Int64: ArrowArrayElement {
         #else
         let numValues: Int = array.count
         #endif
+        #if canImport(Darwin)
+        var array = array.map { Int64($0) }
+        #else
         var array = array
+        #endif
         result = garrow_int64_array_builder_append_values(arrayBuilder,
                                                           &array,
                                                           numValues,
@@ -135,15 +139,19 @@ extension Int64: ArrowArrayElement {
         return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Int64] {
+    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Int] {
         #if canImport(Darwin)
         let n: Int64 = garrow_array_get_length(gArray)
         #else
         let n: Int = garrow_array_get_length(gArray)
         #endif
-        var values: [Int64] = []
+        var values: [Int] = []
         for i in 0..<n {
-            let value: Int64 = garrow_int64_array_get_value(GARROW_INT64_ARRAY(gArray), i)
+            #if canImport(Darwin)
+            let value: Int = Int(garrow_int64_array_get_value(GARROW_INT64_ARRAY(gArray), i))
+            #else
+            let value: Int = garrow_int64_array_get_value(GARROW_INT64_ARRAY(gArray), i)
+            #endif
             values.append(value)
         }
         return values

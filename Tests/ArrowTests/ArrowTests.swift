@@ -77,17 +77,17 @@ final class ArrowLibTests: XCTestCase {
         try testLoadFromFile(values1: floatsValues1, values2: floatsValues2, columnNames: floatsColumnNames)
     }
 
-    // INT64s
-    let int64Values1: [Int64] = [1, 222, 4566, 916661]
-    let int64Values2: [Int64] = [237777777, 233, 23233, 232333]
-    let int64ColumnNames = ["int64Column1", "int64Column2"]
+    // INTs
+    let intValues1: [Int] = [1, 222, 4566, 916661]
+    let intValues2: [Int] = [237777777, 233, 23233, 232333]
+    let intColumnNames = ["intColumn1", "intColumn2"]
 
-    func testCreateAndSaveInt64sToFile() throws {
-        try testCreateAndSaveToFile(values1: int64Values1, values2: int64Values2, columnNames: int64ColumnNames)
+    func testCreateAndSaveIntsToFile() throws {
+        try testCreateAndSaveToFile(values1: intValues1, values2: intValues2, columnNames: intColumnNames)
     }
 
-    func testLoadInt64sFromFile() throws {
-        try testLoadFromFile(values1: int64Values1, values2: int64Values2, columnNames: int64ColumnNames)
+    func testLoadIntsFromFile() throws {
+        try testLoadFromFile(values1: intValues1, values2: intValues2, columnNames: intColumnNames)
     }
 
     // BOOLs
@@ -121,8 +121,8 @@ final class ArrowLibTests: XCTestCase {
         ("testLoadDoublesFromFile", testLoadDoublesFromFile),
         ("testCreateAndSaveFloatsToFile", testCreateAndSaveFloatsToFile),
         ("testLoadFloatsFromFile", testLoadFloatsFromFile),
-        ("testCreateAndSaveInt64sToFile", testCreateAndSaveInt64sToFile),
-        ("testLoadInt64sFromFile", testLoadInt64sFromFile),
+        ("testCreateAndSaveIntsToFile", testCreateAndSaveIntsToFile),
+        ("testLoadIntsFromFile", testLoadIntsFromFile),
         ("testCreateAndSaveBoolsToFile", testCreateAndSaveBoolsToFile),
         ("testLoadBoolsFromFile", testLoadBoolsFromFile),
         ("testCreateAndSaveStringsToFile", testCreateAndSaveStringsToFile),
