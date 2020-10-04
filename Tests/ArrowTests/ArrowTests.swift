@@ -7,11 +7,11 @@ final class ArrowLibTests: XCTestCase {
 
     let columnNames: [String] = ["column1", "column2"]
 
-    func testCreateAndSaveToFile<T: ArrowArrayElement>(values1: [T], values2: [T], type: T.Type) throws {
+    func testCreateAndSaveToFile<T: ArrowArrayElement>(values1: [T], values2: [T]) throws {
         print("Creating arrays, table from arrays, and saving table to .feather file:")
         // Create arrays
-        if let result = try type.createGArrowArray(array: values1),
-           let result2 = try type.createGArrowArray(array: values2) {
+        if let result = try T.self.createGArrowArray(array: values1),
+           let result2 = try T.self.createGArrowArray(array: values2) {
             let valuesDecoded: [T] = try gArrowArrayToSwift(result)
             XCTAssertEqual(valuesDecoded, values1)
             let values2Decoded: [T] = try gArrowArrayToSwift(result2)
@@ -23,7 +23,7 @@ final class ArrowLibTests: XCTestCase {
                 try printTable(gTable: table)
             }
             // Save Table to feather file
-            let outputPath = "./test\(type).feather"
+            let outputPath = "./test\(T.self).feather"
             if let table = table {
                 let column0: [T] = try gArrowTableColumnToSwift(gTable: table, column: 0)
                 XCTAssertEqual(column0, values1)
@@ -35,9 +35,9 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
-    func testLoadFromFile<T: ArrowArrayElement>(values1: [T], values2: [T], type: T.Type) throws {
+    func testLoadFromFile<T: ArrowArrayElement>(values1: [T], values2: [T]) throws {
         print("Loading feather file from disk and printing a column:")
-        let filePath = "./test\(type).feather"
+        let filePath = "./test\(T.self).feather"
         let table = try loadGTableFromFeather(filePath: filePath)
         if let table = table {
             let columns = try gArrowTableGetSchema(table)
@@ -54,28 +54,28 @@ final class ArrowLibTests: XCTestCase {
     let doubleValues2: [Double] = [23.7777777, 233.3, 2323.3, 23233.3]
 
     func testCreateAndSaveDoublesToFile() throws {
-        try testCreateAndSaveToFile(values1: doubleValues1, values2: doubleValues2, type: Double.self)
+        try testCreateAndSaveToFile(values1: doubleValues1, values2: doubleValues2)
     }
 
     func testLoadDoublesFromFile() throws {
-        try testLoadFromFile(values1: doubleValues1, values2: doubleValues2, type: Double.self)
+        try testLoadFromFile(values1: doubleValues1, values2: doubleValues2)
     }
 
     let stringValues1 = ["asdf", "091y", "asljh", "OOOJJJ"]
     let stringValues2 = ["23.7777777", "LKJA>>>>¿", "]}[🎉pp]", ":qjbb❗️"]
 
     func testCreateAndSaveStringsToFile() throws {
-        try testCreateAndSaveToFile(values1: stringValues1, values2: stringValues2, type: String.self)
+        try testCreateAndSaveToFile(values1: stringValues1, values2: stringValues2)
     }
 
     func testLoadStringFromFile() throws {
-        try testLoadFromFile(values1: stringValues1, values2: stringValues2, type: String.self)
+        try testLoadFromFile(values1: stringValues1, values2: stringValues2)
     }
 
     static var allTests = [
         ("testCreateAndSaveDoublesToFile", testCreateAndSaveDoublesToFile),
         ("testLoadDoublesFromFile", testLoadDoublesFromFile),
         ("testCreateAndSaveStringsToFile", testCreateAndSaveStringsToFile),
-        ("testLoadStringFromFile", testLoadStringFromFile),
+        ("testLoadStringFromFile", testLoadStringFromFile)
     ]
 }
