@@ -10,11 +10,11 @@ final class ArrowLibTests: XCTestCase {
     func testCreateAndSaveToFile<T: ArrowArrayElement>(values1: [T], values2: [T]) throws {
         print("Creating arrays, table from arrays, and saving table to .feather file:")
         // Create arrays
-        if let result = try T.self.createGArrowArray(array: values1),
-           let result2 = try T.self.createGArrowArray(array: values2) {
-            let valuesDecoded: [T] = try gArrowArrayToSwift(result)
+        if let result = try T.self.toGArrowArray(array: values1),
+           let result2 = try T.self.toGArrowArray(array: values2) {
+            let valuesDecoded: [T] = try T.self.fromGArrowArray(result)
             XCTAssertEqual(valuesDecoded, values1)
-            let values2Decoded: [T] = try gArrowArrayToSwift(result2)
+            let values2Decoded: [T] = try T.self.fromGArrowArray(result2)
             XCTAssertEqual(values2Decoded, values2)
             // Create table from arrays
             let table = try gArraysToGTable(arrays: [result, result2], columns: columnNames)
