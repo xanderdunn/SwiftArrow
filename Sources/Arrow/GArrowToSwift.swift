@@ -2,6 +2,14 @@ import Foundation
 
 import CArrow
 
+func throwUnsupportedDataType(dataType: UnsafeMutablePointer<GArrowDataType>?) throws {
+    var errorString = "Got GArrowArray with unsupported data type"
+    if let typeString = garrow_data_type_to_string(dataType) {
+        errorString += ": \(typeString)"
+    }
+    throw ArrowError.unsupportedDataType(errorString)
+}
+
 func gArrowArrayToSwift<T: ArrowSupportedType>(_ array: UnsafeMutablePointer<GArrowArray>) throws -> [T] {
     #if canImport(Darwin)
     let n: Int64 = garrow_array_get_length(array)
@@ -16,11 +24,7 @@ func gArrowArrayToSwift<T: ArrowSupportedType>(_ array: UnsafeMutablePointer<GAr
             values.append(value as! T)
         }
     } else {
-        var errorString = "Got GArrowArray with unsupported data type"
-        if let typeString = garrow_data_type_to_string(dataType) {
-            errorString += ": \(typeString)"
-        }
-        throw ArrowError.unsupportedDataType(errorString)
+        try throwUnsupportedDataType(dataType: dataType)
     }
     return values
 }
@@ -30,6 +34,26 @@ func gArrowTableColumnToSwift<T: ArrowSupportedType>(gTable: UnsafeMutablePointe
     if let chunkedArray = garrow_table_get_column_data(gTable, column),
        let gArray = gArrowChunkedArrayToGArrow(chunkedArray) {
            return try gArrowArrayToSwift(gArray)
+    } else {
+        throw ArrowError.failedRead("Couldn't get column from GArrowTable")
     }
-    throw ArrowError.failedRead("Couldn't get column from GArrowTable")
+}
+
+// TODO: Only print the first n rows
+public func printTable(gTable: UnsafeMutablePointer<GArrowTable>) throws {
+    let numColumns = garrow_table_get_n_columns(gTable)
+    for i in 0..<numColumns {
+        if let chunkedArray = garrow_table_get_column_data(gTable, Int32(i)),
+           let gArray = gArrowChunkedArrayToGArrow(chunkedArray) {
+            let dataType = garrow_array_get_value_data_type(gArray)
+            if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {
+                let swiftArray: [Double] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+                print(swiftArray)
+            } else {
+                try throwUnsupportedDataType(dataType: dataType)
+            }
+        } else {
+            throw ArrowError.invalidArrayCreation("Couldn't get GArrowArray from GArrowTable")
+        }
+    }
 }

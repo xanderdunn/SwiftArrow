@@ -35,11 +35,6 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
-
-    /*func testCreateAndSaveStringsToFile() throws {*/
-        /*try testCreateAndSaveToFile(values1: doubleValues1, values2: doubleValues2, type: String.self)*/
-    /*}*/
-
     func testLoadFromFile<T: ArrowSupportedType>(values1: [T], values2: [T], type: T.Type) throws {
         print("Loading feather file from disk and printing a column:")
         let filePath = "./test\(type).feather"
@@ -69,6 +64,10 @@ final class ArrowLibTests: XCTestCase {
 
     let stringValues1 = ["asdf", "091y", "asljh", "OOOJJJ"]
     let stringValues2 = ["23.7777777", "LKJA>>><", "]}[pp]", ":qjbb"]
+
+    /*func testCreateAndSaveStringsToFile() throws {*/
+        /*try testCreateAndSaveToFile(values1: doubleValues1, values2: doubleValues2, type: String.self)*/
+    /*}*/
 
     /*func testLoadStringFromFile() throws {*/
         /*try testLoadFromFile(values1: stringValues1, values2: stringValues2, type: String.self)*/
