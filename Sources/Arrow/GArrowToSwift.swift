@@ -35,6 +35,9 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[C
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_string_data_type_new())) == 1 {
                 let swiftArray: [String] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
                 columnVectors.append(swiftArray)
+            } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_float_data_type_new())) == 1 {
+                let swiftArray: [Float] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+                columnVectors.append(swiftArray)
             } else {
                 try throwUnsupportedDataType(dataType: dataType, source: "printTable")
             }

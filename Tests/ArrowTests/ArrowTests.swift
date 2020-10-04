@@ -63,6 +63,18 @@ final class ArrowLibTests: XCTestCase {
         try testLoadFromFile(values1: doubleValues1, values2: doubleValues2, columnNames: doubleColumnNames)
     }
 
+    let floatsValues1: [Float] = [1.0, 2.22, 45.66, 916661.17171]
+    let floatsValues2: [Float] = [23.7777777, 233.3, 2323.3, 23233.3]
+    let floatsColumnNames = ["floatsColumn1", "floatsColumn2"]
+
+    func testCreateAndSaveFloatsToFile() throws {
+        try testCreateAndSaveToFile(values1: floatsValues1, values2: floatsValues2, columnNames: floatsColumnNames)
+    }
+
+    func testLoadFloatsFromFile() throws {
+        try testLoadFromFile(values1: floatsValues1, values2: floatsValues2, columnNames: floatsColumnNames)
+    }
+
     let stringValues1 = ["asdf", "091y", "asljh", "OOOJJJ"]
     let stringValues2 = ["23.7777777", "LKJA>>>>¿", "]}[🎉pp]", ":qjbb❗️"]
     let stringColumnNames = ["stringsColumn1", "stringsColumn2"]
@@ -78,6 +90,8 @@ final class ArrowLibTests: XCTestCase {
     static var allTests = [
         ("testCreateAndSaveDoublesToFile", testCreateAndSaveDoublesToFile),
         ("testLoadDoublesFromFile", testLoadDoublesFromFile),
+        ("testCreateAndSaveFloatsToFile", testCreateAndSaveFloatsToFile),
+        ("testLoadFloatsFromFile", testLoadFloatsFromFile),
         ("testCreateAndSaveStringsToFile", testCreateAndSaveStringsToFile),
         ("testLoadStringFromFile", testLoadStringFromFile)
     ]
