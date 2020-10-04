@@ -51,6 +51,7 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
+    // DOUBLESs
     let doubleValues1: [Double] = [1.0, 2.22, 45.66, 916661.17171]
     let doubleValues2: [Double] = [23.7777777, 233.3, 2323.3, 23233.3]
     let doubleColumnNames = ["doublesColumn1", "doublesColumn2"]
@@ -63,6 +64,7 @@ final class ArrowLibTests: XCTestCase {
         try testLoadFromFile(values1: doubleValues1, values2: doubleValues2, columnNames: doubleColumnNames)
     }
 
+    // FLOATS
     let floatsValues1: [Float] = [1.0, 2.22, 45.66, 916661.17171]
     let floatsValues2: [Float] = [23.7777777, 233.3, 2323.3, 23233.3]
     let floatsColumnNames = ["floatsColumn1", "floatsColumn2"]
@@ -75,6 +77,20 @@ final class ArrowLibTests: XCTestCase {
         try testLoadFromFile(values1: floatsValues1, values2: floatsValues2, columnNames: floatsColumnNames)
     }
 
+    // INT64s
+    let int64Values1: [Int64] = [1, 222, 4566, 916661]
+    let int64Values2: [Int64] = [237777777, 233, 23233, 232333]
+    let int64ColumnNames = ["int64Column1", "int64Column2"]
+
+    func testCreateAndSaveInt64sToFile() throws {
+        try testCreateAndSaveToFile(values1: int64Values1, values2: int64Values2, columnNames: int64ColumnNames)
+    }
+
+    func testLoadInt64FromFile() throws {
+        try testLoadFromFile(values1: int64Values1, values2: int64Values2, columnNames: int64ColumnNames)
+    }
+
+    // STRINGS
     let stringValues1 = ["asdf", "091y", "asljh", "OOOJJJ"]
     let stringValues2 = ["23.7777777", "LKJA>>>>¿", "]}[🎉pp]", ":qjbb❗️"]
     let stringColumnNames = ["stringsColumn1", "stringsColumn2"]
