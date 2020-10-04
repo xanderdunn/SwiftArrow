@@ -10,20 +10,8 @@ enum ArrowError: Error {
     case invalidInputStream(String)
     case failedRead(String)
     case invalidFields(String)
-}
-
-func gArrowArrayToSwift(_ array: UnsafeMutablePointer<GArrowArray>) -> [Double] {
-    #if canImport(Darwin)
-    let n: Int64 = garrow_array_get_length(array)
-    #else
-    let n: Int = garrow_array_get_length(array)
-    #endif
-    var values: [Double] = []
-    for i in 0..<n {
-        let value: Double = garrow_double_array_get_value(GARROW_DOUBLE_ARRAY(array), i)
-        values.append(value)
-    }
-    return values
+    case invalidFeatherSave(String)
+    case unsupportedDataType(String)
 }
 
 func gArrowChunkedArrayToGArrow(_ chunkedArray: UnsafeMutablePointer<GArrowChunkedArray>) -> 
@@ -35,37 +23,6 @@ func gArrowChunkedArrayToGArrow(_ chunkedArray: UnsafeMutablePointer<GArrowChunk
     return gArrowArray
 }
 
-func doubleArrayToGArray(values: [Double]) throws -> UnsafeMutablePointer<GArrowArray>? {
-    if let arrayBuilder = garrow_double_array_builder_new() {
-        var values = values
-        var error: UnsafeMutablePointer<GError>? = nil
-        var result: gboolean
-        #if canImport(Darwin)
-        let numValues: Int64 = Int64(values.count)
-        #else
-        let numValues: Int = values.count
-        #endif
-        result = garrow_double_array_builder_append_values(arrayBuilder, &values, numValues, [], 0, &error)
-        if result == 0 {
-            let errorString: String = error != nil ? String(cString: error!.pointee.message) : ""
-            g_error_free(error)
-            g_object_unref(arrayBuilder)
-            throw ArrowError.invalidArrayCreation(errorString)
-        }
-        let gArray: UnsafeMutablePointer<GArrowArray>? = garrow_array_builder_finish(GARROW_ARRAY_BUILDER(arrayBuilder),
-                                                                                     &error)
-        if result == 0 {
-            let errorString: String = error != nil ? String(cString: error!.pointee.message) : ""
-            g_error_free(error)
-            g_object_unref(arrayBuilder)
-            throw ArrowError.invalidArrayCreation(errorString)
-        }
-        g_object_unref(arrayBuilder)
-        return gArray
-    }
-    throw ArrowError.invalidArrayCreation("Couldn't make new garrow_array_builder")
-}
-
 /**
 GList usage from here: https://github.com/apache/arrow/blob/master/c_glib/arrow-glib/schema.cpp#L241-L247
 */
@@ -73,9 +30,10 @@ func gArraysToGTable(arrays: [UnsafeMutablePointer<GArrowArray>?],
                      columns: [String]) throws -> UnsafeMutablePointer<GArrowTable>? {
     assert(arrays.count == columns.count)
     var fields: UnsafeMutablePointer<GList>? = nil
-    for column in columns {
+    for (i, column) in columns.enumerated() {
         let cString = column.cString(using: .utf8)
-        let field = garrow_field_new(cString, GARROW_DATA_TYPE(garrow_double_data_type_new()))
+        let dataType = garrow_array_get_value_data_type(arrays[i])
+        let field = garrow_field_new(cString, dataType)
         fields = g_list_prepend(fields, field)
     }
     fields = g_list_reverse(fields)
@@ -104,7 +62,7 @@ func saveGTableToFeather(_ gTable: UnsafeMutablePointer<GArrowTable>, outputPath
         g_error_free(error)
         g_object_unref(output)
         g_object_unref(properties)
-        throw ArrowError.invalidTableCreation(errorString)
+        throw ArrowError.invalidFeatherSave(errorString)
     }
     let result: gboolean = garrow_table_write_as_feather(gTable, GARROW_OUTPUT_STREAM(output), properties, &error)
     if result == 0 {
@@ -112,7 +70,7 @@ func saveGTableToFeather(_ gTable: UnsafeMutablePointer<GArrowTable>, outputPath
         g_error_free(error)
         g_object_unref(output)
         g_object_unref(properties)
-        throw ArrowError.invalidTableCreation(errorString)
+        throw ArrowError.invalidFeatherSave(errorString)
     }
     g_object_unref(output)
     g_object_unref(properties)
@@ -176,7 +134,7 @@ func gArrowTableGetSchema(_ gTable: UnsafeMutablePointer<GArrowTable>) throws ->
 func gArrowTableColumnToSwift(gTable: UnsafeMutablePointer<GArrowTable>, column: Int32) throws -> [Double] {
     if let chunkedArray = garrow_table_get_column_data(gTable, column),
        let gArray = gArrowChunkedArrayToGArrow(chunkedArray) {
-           return gArrowArrayToSwift(gArray)
+           return try gArrowArrayToSwift(gArray)
     }
     throw ArrowError.failedRead("Couldn't get column from GArrowTable")
 }

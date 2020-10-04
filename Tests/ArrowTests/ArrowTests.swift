@@ -5,22 +5,20 @@ import class Foundation.Bundle
 
 final class ArrowLibTests: XCTestCase {
 
-    let values: [Double] = [1.0, 2.22, 45.66, 916661.17171]
-    let values2: [Double] = [23.7777777, 233.3, 2323.3, 23233.3]
+    let doubleValues1: [Double] = [1.0, 2.22, 45.66, 916661.17171]
+    let doubleValues2: [Double] = [23.7777777, 233.3, 2323.3, 23233.3]
     let columnNames: [String] = ["result", "result2"]
 
-    func testCreateAndSaveToFile() throws {
+    func testCreateAndSaveDoublesToFile() throws {
         print("Creating arrays, table from arrays, and saving table to .feather file:")
         do {
             // Create arrays
-            if let result = try doubleArrayToGArray(values: values),
-               let result2 = try doubleArrayToGArray(values: values2) {
-                let valuesDecoded = gArrowArrayToSwift(result)
-                XCTAssertEqual(valuesDecoded, values)
-                let values2Decoded = gArrowArrayToSwift(result2)
-                XCTAssertEqual(values2Decoded, values2)
-                print(values)
-                print(values2)
+            if let result = try arrayToGArray(values: doubleValues1),
+               let result2 = try arrayToGArray(values: doubleValues2) {
+                let valuesDecoded: [Double] = try gArrowArrayToSwift(result)
+                XCTAssertEqual(valuesDecoded, doubleValues1)
+                let values2Decoded: [Double] = try gArrowArrayToSwift(result2)
+                XCTAssertEqual(values2Decoded, doubleValues2)
                 // Create table from arrays
                 let table = try gArraysToGTable(arrays: [result, result2], columns: columnNames)
                 if let table = table {
@@ -28,12 +26,12 @@ final class ArrowLibTests: XCTestCase {
                     try printTable(gTable: table)
                 }
                 // Save Table to feather file
-                let outputPath = "./test.feather"
+                let outputPath = "./testDoubles.feather"
                 if let table = table {
                     let column0 = try gArrowTableColumnToSwift(gTable: table, column: 0)
-                    XCTAssertEqual(column0, values)
+                    XCTAssertEqual(column0, doubleValues1)
                     let column1 = try gArrowTableColumnToSwift(gTable: table, column: 1)
-                    XCTAssertEqual(column1, values2)
+                    XCTAssertEqual(column1, doubleValues2)
                     try saveGTableToFeather(table, outputPath: outputPath)
                     print("Saved to \(outputPath)")
                 }
@@ -43,9 +41,9 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
-    func testLoadFromFile() throws {
+    func testLoadDoublesFromFile() throws {
         print("Loading feather file from disk and printing a column:")
-        let filePath = "./test.feather"
+        let filePath = "./testDoubles.feather"
         do {
             let table = try loadGTableFromFeather(filePath: filePath)
             if let table = table {
@@ -53,9 +51,9 @@ final class ArrowLibTests: XCTestCase {
                 XCTAssertEqual(columns, columnNames)
                 print("columns: \(columns)")
                 let column0 = try gArrowTableColumnToSwift(gTable: table, column: 0)
-                XCTAssertEqual(column0, values)
+                XCTAssertEqual(column0, doubleValues1)
                 let column1 = try gArrowTableColumnToSwift(gTable: table, column: 1)
-                XCTAssertEqual(column1, values2)
+                XCTAssertEqual(column1, doubleValues2)
                 try printTable(gTable: table)
             }
         } catch {
@@ -64,7 +62,7 @@ final class ArrowLibTests: XCTestCase {
     }
 
     static var allTests = [
-        ("testCreateAndSaveToFile", testCreateAndSaveToFile),
-        ("testLoadFromFile", testCreateAndSaveToFile),
+        ("testCreateAndSaveDoublesToFile", testCreateAndSaveDoublesToFile),
+        ("testLoadDoublesFromFile", testLoadDoublesFromFile),
     ]
 }
