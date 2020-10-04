@@ -12,9 +12,9 @@ final class ArrowLibTests: XCTestCase {
         // Create arrays
         if let result = try T.self.toGArrowArray(array: values1),
            let result2 = try T.self.toGArrowArray(array: values2) {
-            let valuesDecoded: [T] = try T.self.fromGArrowArray(result)
+            let valuesDecoded: [T] = T.self.fromGArrowArray(result)
             XCTAssertEqual(valuesDecoded, values1)
-            let values2Decoded: [T] = try T.self.fromGArrowArray(result2)
+            let values2Decoded: [T] = T.self.fromGArrowArray(result2)
             XCTAssertEqual(values2Decoded, values2)
             // Create table from arrays
             let table = try gArraysToGTable(arrays: [result, result2], columns: columnNames)

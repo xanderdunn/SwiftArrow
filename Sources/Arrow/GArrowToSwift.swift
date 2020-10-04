@@ -16,7 +16,7 @@ func gArrowTableColumnToSwift<T: ArrowArrayElement>(gTable: UnsafeMutablePointer
                                                     column: Int32) throws -> [T] {
     if let chunkedArray = garrow_table_get_column_data(gTable, column),
        let gArray = gArrowChunkedArrayToGArrow(chunkedArray) {
-           return try T.self.fromGArrowArray(gArray)
+           return T.self.fromGArrowArray(gArray)
     } else {
         throw ArrowError.failedRead("Couldn't get column from GArrowTable")
     }

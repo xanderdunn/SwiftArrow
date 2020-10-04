@@ -32,7 +32,7 @@ func completeGArrayBuilding(result: gboolean,
 
 protocol ArrowArrayElement: Equatable, CustomStringConvertible {
     static func toGArrowArray(array: [Self]) throws -> UnsafeMutablePointer<GArrowArray>?
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) throws -> [Self]
+    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Self]
 }
 
 extension String: ArrowArrayElement {
@@ -55,7 +55,7 @@ extension String: ArrowArrayElement {
         return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) throws -> [String] {
+    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [String] {
         #if canImport(Darwin)
         let n: Int64 = garrow_array_get_length(gArray)
         #else
@@ -90,7 +90,7 @@ extension Double: ArrowArrayElement {
         return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) throws -> [Double] {
+    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Double] {
         #if canImport(Darwin)
         let n: Int64 = garrow_array_get_length(gArray)
         #else
@@ -104,6 +104,13 @@ extension Double: ArrowArrayElement {
         return values
     }
 }
+
+/*func tableColumnTypes(gTable: ) throws -> [] {*/
+    /*let numColumns = garrow_table_get_n_columns(gTable)*/
+    /*let types: []*/
+    /*for i in 0..<numColumns {*/
+    /*}*/
+/*}*/
 
 func gArrowDataTypeToSwift<T>(dataType: UnsafeMutablePointer<GArrowDataType>) throws -> T {
     if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {
