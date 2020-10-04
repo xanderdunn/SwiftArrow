@@ -104,18 +104,3 @@ extension Double: ArrowArrayElement {
         return values
     }
 }
-
-/*func tableColumnTypes(gTable: ) throws -> [] {*/
-    /*let numColumns = garrow_table_get_n_columns(gTable)*/
-    /*let types: []*/
-    /*for i in 0..<numColumns {*/
-    /*}*/
-/*}*/
-
-func gArrowDataTypeToSwift<T>(dataType: UnsafeMutablePointer<GArrowDataType>) throws -> T {
-    if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {
-        return Double.self as! T // TODO: Is there any way to do this without force type casts?
-    } else {
-        throw ArrowError.unsupportedDataType("Unsupported data type \(dataType)")
-    }
-}

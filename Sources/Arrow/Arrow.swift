@@ -14,7 +14,7 @@ enum ArrowError: Error {
     case unsupportedDataType(String)
 }
 
-func gArrowChunkedArrayToGArrow(_ chunkedArray: UnsafeMutablePointer<GArrowChunkedArray>) -> 
+func gArrowChunkedArrayToGArrow(_ chunkedArray: UnsafeMutablePointer<GArrowChunkedArray>) ->
                                                                                 UnsafeMutablePointer<GArrowArray>? {
     let numChunks = garrow_chunked_array_get_n_chunks(chunkedArray)
     // TODO: Support arbitrary chunks
@@ -29,7 +29,7 @@ GList usage from here: https://github.com/apache/arrow/blob/master/c_glib/arrow-
 func gArraysToGTable(arrays: [UnsafeMutablePointer<GArrowArray>?],
                      columns: [String]) throws -> UnsafeMutablePointer<GArrowTable>? {
     assert(arrays.count == columns.count)
-    var fields: UnsafeMutablePointer<GList>? = nil
+    var fields: UnsafeMutablePointer<GList>?
     for (i, column) in columns.enumerated() {
         let cString = column.cString(using: .utf8)
         let dataType = garrow_array_get_value_data_type(arrays[i])
@@ -38,7 +38,7 @@ func gArraysToGTable(arrays: [UnsafeMutablePointer<GArrowArray>?],
     }
     fields = g_list_reverse(fields)
     let schema = garrow_schema_new(fields)
-    var error: UnsafeMutablePointer<GError>? = nil
+    var error: UnsafeMutablePointer<GError>?
     var arrays = arrays
     let table = garrow_table_new_arrays(schema, &arrays, 2, &error)
     if let error = error {
@@ -52,7 +52,7 @@ func gArraysToGTable(arrays: [UnsafeMutablePointer<GArrowArray>?],
 }
 
 func saveGTableToFeather(_ gTable: UnsafeMutablePointer<GArrowTable>, outputPath: String) throws {
-    var error: UnsafeMutablePointer<GError>? = nil
+    var error: UnsafeMutablePointer<GError>?
     // TODO: How do I turn on compression?
     let properties = garrow_feather_write_properties_new()
     let path = outputPath.cString(using: .utf8)
@@ -80,7 +80,7 @@ func saveGTableToFeather(_ gTable: UnsafeMutablePointer<GArrowTable>, outputPath
 Load table from file: GArrowFeatherFileReader
 */
 func loadGTableFromFeather(filePath: String) throws -> UnsafeMutablePointer<GArrowTable>? {
-    var error: UnsafeMutablePointer<GError>? = nil
+    var error: UnsafeMutablePointer<GError>?
     let path = filePath.cString(using: .utf8)
     let inputStream = garrow_memory_mapped_input_stream_new(path, &error)
     if let error = error {
@@ -130,5 +130,3 @@ func gArrowTableGetSchema(_ gTable: UnsafeMutablePointer<GArrowTable>) throws ->
     }
     throw ArrowError.invalidFields("Could not get fields from schema")
 }
-
-
