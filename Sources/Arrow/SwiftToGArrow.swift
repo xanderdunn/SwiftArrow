@@ -13,7 +13,7 @@ func arrayToGArray<T: ArrowSupportedType>(values: [T]) throws -> UnsafeMutablePo
         throw ArrowError.unsupportedDataType("Got array with type \(valuesType), which is not supported")
     }
     if let arrayBuilder = arrayBuilder {
-        var error: UnsafeMutablePointer<GError>? = nil
+        var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         #if canImport(Darwin)
         let numValues: Int64 = Int64(values.count)
@@ -21,7 +21,7 @@ func arrayToGArray<T: ArrowSupportedType>(values: [T]) throws -> UnsafeMutablePo
         let numValues: Int = values.count
         #endif
         if valuesType == Double.self {
-            var values = values as! [Double]
+            var values = values as! [Double] // TODO: Is there any way to do this without force casting?
             result = garrow_double_array_builder_append_values(GARROW_DOUBLE_ARRAY_BUILDER(arrayBuilder),
                                                                &values,
                                                                numValues,
@@ -29,7 +29,7 @@ func arrayToGArray<T: ArrowSupportedType>(values: [T]) throws -> UnsafeMutablePo
                                                                0,
                                                                &error)
         } else if valuesType == String.self {
-            let values = values as! [String]
+            let values = values as! [String] // TODO: Is there any way to do this without force casting?
             var cValues = values.map { UnsafePointer<Int8>(strdup($0)) }
             result = garrow_string_array_builder_append_strings(GARROW_STRING_ARRAY_BUILDER(arrayBuilder),
                                                                &cValues,

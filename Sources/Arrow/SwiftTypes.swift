@@ -8,7 +8,7 @@ import CArrow
 //  without needing an if statement on the types
 // See here: https://medium.com/@chris_dus/type-erasure-in-swift-84480c807534
 
-protocol ArrowSupportedType: Equatable {
+protocol ArrowSupportedType: Equatable, CustomStringConvertible {
 }
 
 extension String: ArrowSupportedType {
@@ -19,7 +19,7 @@ extension Double: ArrowSupportedType {
 
 func gArrowDataTypeToSwift<T>(dataType: UnsafeMutablePointer<GArrowDataType>) throws -> T {
     if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {
-        return Double.self as! T
+        return Double.self as! T // TODO: Is there any way to do this without force type casts?
     } else {
         throw ArrowError.unsupportedDataType("Unsupported data type \(dataType)")
     }
