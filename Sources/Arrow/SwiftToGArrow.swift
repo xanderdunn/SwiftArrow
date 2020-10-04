@@ -2,7 +2,7 @@ import Foundation
 
 import CArrow
 
-func arrayToGArray<T>(values: [T]) throws -> UnsafeMutablePointer<GArrowArray>? {
+func arrayToGArray<T: ArrowSupportedType>(values: [T]) throws -> UnsafeMutablePointer<GArrowArray>? {
     let valuesType = type(of: values).Element.self
     let arrayBuilder: UnsafeMutablePointer<GArrowArrayBuilder>?
     if valuesType == Double.self {

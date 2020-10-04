@@ -131,19 +131,15 @@ func gArrowTableGetSchema(_ gTable: UnsafeMutablePointer<GArrowTable>) throws ->
     throw ArrowError.invalidFields("Could not get fields from schema")
 }
 
-func gArrowTableColumnToSwift(gTable: UnsafeMutablePointer<GArrowTable>, column: Int32) throws -> [Double] {
-    if let chunkedArray = garrow_table_get_column_data(gTable, column),
-       let gArray = gArrowChunkedArrayToGArrow(chunkedArray) {
-           return try gArrowArrayToSwift(gArray)
-    }
-    throw ArrowError.failedRead("Couldn't get column from GArrowTable")
-}
 
 // TODO: Only print the first n rows
 public func printTable(gTable: UnsafeMutablePointer<GArrowTable>) throws {
     let numColumns = garrow_table_get_n_columns(gTable)
     for i in 0..<numColumns {
-        let swiftArray = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+        /*let dataType = garrow_array_get_value_data_type(array)*/
+        /*if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {*/
+        /*}*/
+        let swiftArray: [Double] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
         print(swiftArray)
     }
 }
