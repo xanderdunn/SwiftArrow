@@ -7,6 +7,8 @@ func arrayToGArray<T: ArrowSupportedType>(values: [T]) throws -> UnsafeMutablePo
     let arrayBuilder: UnsafeMutablePointer<GArrowArrayBuilder>?
     if valuesType == Double.self {
         arrayBuilder = GARROW_ARRAY_BUILDER(garrow_double_array_builder_new())
+    } else if valuesType == String.self {
+        arrayBuilder = GARROW_ARRAY_BUILDER(garrow_string_array_builder_new())
     } else {
         throw ArrowError.unsupportedDataType("Got array with type \(valuesType), which is not supported")
     }
@@ -22,6 +24,15 @@ func arrayToGArray<T: ArrowSupportedType>(values: [T]) throws -> UnsafeMutablePo
             var values = values as! [Double]
             result = garrow_double_array_builder_append_values(GARROW_DOUBLE_ARRAY_BUILDER(arrayBuilder),
                                                                &values,
+                                                               numValues,
+                                                               [],
+                                                               0,
+                                                               &error)
+        } else if valuesType == String.self {
+            let values = values as! [String]
+            var cValues = values.map { UnsafePointer<Int8>(strdup($0)) }
+            result = garrow_string_array_builder_append_strings(GARROW_STRING_ARRAY_BUILDER(arrayBuilder),
+                                                               &cValues,
                                                                numValues,
                                                                [],
                                                                0,

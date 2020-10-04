@@ -2,10 +2,11 @@ import Foundation
 
 import CArrow
 
-func throwUnsupportedDataType(dataType: UnsafeMutablePointer<GArrowDataType>?) throws {
-    var errorString = "Got GArrowArray with unsupported data type"
+func throwUnsupportedDataType(dataType: UnsafeMutablePointer<GArrowDataType>?, source: String) throws {
+    var errorString = "Got GArrowArray with unsupported data type in call \(source)"
     if let typeString = garrow_data_type_to_string(dataType) {
-        errorString += ": \(typeString)"
+        let swiftTypeString = String(cString: typeString)
+        errorString += ": \(swiftTypeString)"
     }
     throw ArrowError.unsupportedDataType(errorString)
 }
@@ -23,8 +24,13 @@ func gArrowArrayToSwift<T: ArrowSupportedType>(_ array: UnsafeMutablePointer<GAr
             let value: Double = garrow_double_array_get_value(GARROW_DOUBLE_ARRAY(array), i)
             values.append(value as! T)
         }
+    } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_string_data_type_new())) == 1 {
+        for i in 0..<n {
+            let value: String = String(cString: garrow_string_array_get_string(GARROW_STRING_ARRAY(array), i))
+            values.append(value as! T)
+        }
     } else {
-        try throwUnsupportedDataType(dataType: dataType)
+        try throwUnsupportedDataType(dataType: dataType, source: "gArrowArrayToSwift")
     }
     return values
 }
@@ -49,8 +55,11 @@ public func printTable(gTable: UnsafeMutablePointer<GArrowTable>) throws {
             if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {
                 let swiftArray: [Double] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
                 print(swiftArray)
+            } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_string_data_type_new())) == 1 {
+                let swiftArray: [String] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+                print(swiftArray)
             } else {
-                try throwUnsupportedDataType(dataType: dataType)
+                try throwUnsupportedDataType(dataType: dataType, source: "printTable")
             }
         } else {
             throw ArrowError.invalidArrayCreation("Couldn't get GArrowArray from GArrowTable")

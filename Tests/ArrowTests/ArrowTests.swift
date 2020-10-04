@@ -42,7 +42,6 @@ final class ArrowLibTests: XCTestCase {
         if let table = table {
             let columns = try gArrowTableGetSchema(table)
             XCTAssertEqual(columns, columnNames)
-            print("columns: \(columns)")
             let column0: [T] = try gArrowTableColumnToSwift(gTable: table, column: 0)
             XCTAssertEqual(column0, values1)
             let column1: [T] = try gArrowTableColumnToSwift(gTable: table, column: 1)
@@ -65,17 +64,18 @@ final class ArrowLibTests: XCTestCase {
     let stringValues1 = ["asdf", "091y", "asljh", "OOOJJJ"]
     let stringValues2 = ["23.7777777", "LKJA>>><", "]}[pp]", ":qjbb"]
 
-    /*func testCreateAndSaveStringsToFile() throws {*/
-        /*try testCreateAndSaveToFile(values1: doubleValues1, values2: doubleValues2, type: String.self)*/
-    /*}*/
+    func testCreateAndSaveStringsToFile() throws {
+        try testCreateAndSaveToFile(values1: stringValues1, values2: stringValues2, type: String.self)
+    }
 
-    /*func testLoadStringFromFile() throws {*/
-        /*try testLoadFromFile(values1: stringValues1, values2: stringValues2, type: String.self)*/
-    /*}*/
+    func testLoadStringFromFile() throws {
+        try testLoadFromFile(values1: stringValues1, values2: stringValues2, type: String.self)
+    }
 
     static var allTests = [
         ("testCreateAndSaveDoublesToFile", testCreateAndSaveDoublesToFile),
         ("testLoadDoublesFromFile", testLoadDoublesFromFile),
-        /*("testLoadStringFromFile", testLoadStringFromFile),*/
+        ("testCreateAndSaveStringsToFile", testCreateAndSaveStringsToFile),
+        ("testLoadStringFromFile", testLoadStringFromFile),
     ]
 }
