@@ -37,6 +37,10 @@ func arrayToGArray<T: ArrowSupportedType>(values: [T]) throws -> UnsafeMutablePo
                                                                [],
                                                                0,
                                                                &error)
+            // This free is from here: https://stackoverflow.com/a/38275792/529743
+            // TODO: I don't undersatnd when I need to free UnsafeMutablePointers and when I don't. Is there a
+            //  closure that would obviate the need to manually call free?
+            for ptr in cValues { free(UnsafeMutablePointer(mutating: ptr)) }
         } else {
             throw ArrowError.unsupportedDataType("Got array with type \(valuesType), which is not supported")
         }

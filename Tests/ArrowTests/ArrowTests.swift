@@ -62,7 +62,7 @@ final class ArrowLibTests: XCTestCase {
     }
 
     let stringValues1 = ["asdf", "091y", "asljh", "OOOJJJ"]
-    let stringValues2 = ["23.7777777", "LKJA>>><", "]}[pp]", ":qjbb"]
+    let stringValues2 = ["23.7777777", "LKJA>>>>¿", "]}[🎉pp]", ":qjbb❗️"]
 
     func testCreateAndSaveStringsToFile() throws {
         try testCreateAndSaveToFile(values1: stringValues1, values2: stringValues2, type: String.self)
