@@ -22,8 +22,7 @@ func gArrowTableColumnToSwift<T: ArrowArrayElement>(gTable: UnsafeMutablePointer
     }
 }
 
-// TODO: Only print the first n rows
-public func printTable(gTable: UnsafeMutablePointer<GArrowTable>) throws {
+func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[CustomStringConvertible]] {
     var columnVectors: [[CustomStringConvertible]] = []
     let numColumns = garrow_table_get_n_columns(gTable)
     for i in 0..<numColumns {
@@ -43,15 +42,20 @@ public func printTable(gTable: UnsafeMutablePointer<GArrowTable>) throws {
             throw ArrowError.invalidArrayCreation("Couldn't get GArrowArray from GArrowTable")
         }
     }
-    let textTableColumns: [TextTableColumn] = try gArrowTableGetSchema(gTable).map { TextTableColumn(header: $0) }
-    for columnVector in columnVectors {
-        assert(columnVector.count == columnVectors[0].count)
+    return columnVectors
+}
+
+// TODO: Only print the first n rows
+public func printTable(columns: [[CustomStringConvertible]], columnNames: [String]) throws {
+    let textTableColumns: [TextTableColumn] = columnNames.map { TextTableColumn(header: $0) }
+    for columnVector in columns {
+        assert(columnVector.count == columns[0].count)
     }
     // TODO: This is very inefficient. Should simply be able to create a column with columnar values rather than
     //  adding by row
     var rowVectors: [[CustomStringConvertible]] = []
-    for i in 0..<columnVectors[0].count {
-        let rowVector = columnVectors.map { $0[i] }
+    for i in 0..<columns[0].count {
+        let rowVector = columns.map { $0[i] }
         rowVectors.append(rowVector)
     }
     var textTable = TextTable(columns: textTableColumns)

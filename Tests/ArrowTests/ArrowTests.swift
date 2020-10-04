@@ -5,9 +5,7 @@ import class Foundation.Bundle
 
 final class ArrowLibTests: XCTestCase {
 
-    let columnNames: [String] = ["column1", "column2"]
-
-    func testCreateAndSaveToFile<T: ArrowArrayElement>(values1: [T], values2: [T]) throws {
+    func testCreateAndSaveToFile<T: ArrowArrayElement>(values1: [T], values2: [T], columnNames: [String]) throws {
         print("Creating arrays, table from arrays, and saving table to .feather file:")
         // Create arrays
         if let result = try T.self.toGArrowArray(array: values1),
@@ -20,7 +18,9 @@ final class ArrowLibTests: XCTestCase {
             let table = try gArraysToGTable(arrays: [result, result2], columns: columnNames)
             if let table = table {
                 print("Columns of created table:")
-                try printTable(gTable: table)
+                let deserializedColumnsNames = try gArrowTableGetSchema(table)
+                let columns = try gArrowTableToSwift(gTable: table)
+                try printTable(columns: columns, columnNames: deserializedColumnsNames)
             }
             // Save Table to feather file
             let outputPath = "./test\(T.self).feather"
@@ -35,41 +35,44 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
-    func testLoadFromFile<T: ArrowArrayElement>(values1: [T], values2: [T]) throws {
+    func testLoadFromFile<T: ArrowArrayElement>(values1: [T], values2: [T], columnNames: [String]) throws {
         print("Loading feather file from disk and printing a column:")
         let filePath = "./test\(T.self).feather"
-        let table = try loadGTableFromFeather(filePath: filePath)
-        if let table = table {
-            let columns = try gArrowTableGetSchema(table)
-            XCTAssertEqual(columns, columnNames)
-            let column0: [T] = try gArrowTableColumnToSwift(gTable: table, column: 0)
+        let gTable = try loadGTableFromFeather(filePath: filePath)
+        if let gTable = gTable {
+            let deserializedColumnsNames = try gArrowTableGetSchema(gTable)
+            XCTAssertEqual(deserializedColumnsNames, columnNames)
+            let column0: [T] = try gArrowTableColumnToSwift(gTable: gTable, column: 0)
             XCTAssertEqual(column0, values1)
-            let column1: [T] = try gArrowTableColumnToSwift(gTable: table, column: 1)
+            let column1: [T] = try gArrowTableColumnToSwift(gTable: gTable, column: 1)
             XCTAssertEqual(column1, values2)
-            try printTable(gTable: table)
+            let columns = try gArrowTableToSwift(gTable: gTable)
+            try printTable(columns: columns, columnNames: deserializedColumnsNames)
         }
     }
 
     let doubleValues1: [Double] = [1.0, 2.22, 45.66, 916661.17171]
     let doubleValues2: [Double] = [23.7777777, 233.3, 2323.3, 23233.3]
+    let doubleColumnNames = ["doublesColumn1", "doublesColumn2"]
 
     func testCreateAndSaveDoublesToFile() throws {
-        try testCreateAndSaveToFile(values1: doubleValues1, values2: doubleValues2)
+        try testCreateAndSaveToFile(values1: doubleValues1, values2: doubleValues2, columnNames: doubleColumnNames)
     }
 
     func testLoadDoublesFromFile() throws {
-        try testLoadFromFile(values1: doubleValues1, values2: doubleValues2)
+        try testLoadFromFile(values1: doubleValues1, values2: doubleValues2, columnNames: doubleColumnNames)
     }
 
     let stringValues1 = ["asdf", "091y", "asljh", "OOOJJJ"]
     let stringValues2 = ["23.7777777", "LKJA>>>>¿", "]}[🎉pp]", ":qjbb❗️"]
+    let stringColumnNames = ["stringsColumn1", "stringsColumn2"]
 
     func testCreateAndSaveStringsToFile() throws {
-        try testCreateAndSaveToFile(values1: stringValues1, values2: stringValues2)
+        try testCreateAndSaveToFile(values1: stringValues1, values2: stringValues2, columnNames: stringColumnNames)
     }
 
     func testLoadStringFromFile() throws {
-        try testLoadFromFile(values1: stringValues1, values2: stringValues2)
+        try testLoadFromFile(values1: stringValues1, values2: stringValues2, columnNames: stringColumnNames)
     }
 
     static var allTests = [

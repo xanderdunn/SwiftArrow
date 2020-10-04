@@ -30,7 +30,10 @@ func completeGArrayBuilding(result: gboolean,
     return gArray
 }
 
-protocol ArrowArrayElement: Equatable, CustomStringConvertible {
+protocol BaseArrowArrayElement {
+}
+
+protocol ArrowArrayElement: Equatable, CustomStringConvertible, BaseArrowArrayElement {
     static func toGArrowArray(array: [Self]) throws -> UnsafeMutablePointer<GArrowArray>?
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Self]
 }
