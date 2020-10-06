@@ -55,8 +55,17 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[C
 }
 
 // TODO: Only print the first n rows
-public func printTable(columns: [[CustomStringConvertible]], columnNames: [String]) throws {
+public func printTable(rows: [[CustomStringConvertible]], columnNames: [String]) {
     let textTableColumns: [TextTableColumn] = columnNames.map { TextTableColumn(header: $0) }
+    var textTable = TextTable(columns: textTableColumns)
+    for rowVector in rows {
+        textTable.addRow(values: rowVector)
+    }
+    let tableString = textTable.render()
+    print(tableString)
+}
+
+public func printTable(columns: [[CustomStringConvertible]], columnNames: [String]) {
     for columnVector in columns {
         assert(columnVector.count == columns[0].count)
     }
@@ -67,10 +76,5 @@ public func printTable(columns: [[CustomStringConvertible]], columnNames: [Strin
         let rowVector = columns.map { $0[i] }
         rowVectors.append(rowVector)
     }
-    var textTable = TextTable(columns: textTableColumns)
-    for rowVector in rowVectors {
-        textTable.addRow(values: rowVector)
-    }
-    let tableString = textTable.render()
-    print(tableString)
+    printTable(rows: rowVectors, columnNames: columnNames)
 }

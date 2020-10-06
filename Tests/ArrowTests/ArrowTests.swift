@@ -1,7 +1,7 @@
 import XCTest
 import class Foundation.Bundle
 
-@testable import Arrow
+@testable import SwiftArrow
 
 final class ArrowLibTests: XCTestCase {
 
@@ -20,7 +20,7 @@ final class ArrowLibTests: XCTestCase {
                 print("Columns of created table:")
                 let deserializedColumnsNames = try gArrowTableGetSchema(table)
                 let columns = try gArrowTableToSwift(gTable: table)
-                try printTable(columns: columns, columnNames: deserializedColumnsNames)
+                printTable(columns: columns, columnNames: deserializedColumnsNames)
             }
             // Save Table to feather file
             let outputPath = "./test\(T.self).feather"
@@ -47,7 +47,7 @@ final class ArrowLibTests: XCTestCase {
             let column1: [T] = try gArrowTableColumnToSwift(gTable: gTable, column: 1)
             XCTAssertEqual(column1, values2)
             let columns = try gArrowTableToSwift(gTable: gTable)
-            try printTable(columns: columns, columnNames: deserializedColumnsNames)
+            printTable(columns: columns, columnNames: deserializedColumnsNames)
         }
     }
 
