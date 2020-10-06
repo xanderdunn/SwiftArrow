@@ -1,6 +1,5 @@
 import Foundation
 
-import SwiftyTextTable
 import CArrow
 
 func throwUnsupportedDataType(dataType: UnsafeMutablePointer<GArrowDataType>?, source: String) throws {
@@ -45,36 +44,11 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[C
                 let swiftArray: [Bool] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
                 columnVectors.append(swiftArray)
             } else {
-                try throwUnsupportedDataType(dataType: dataType, source: "printTable")
+                try throwUnsupportedDataType(dataType: dataType, source: "gArrowTableToSwift")
             }
         } else {
             throw ArrowError.invalidArrayCreation("Couldn't get GArrowArray from GArrowTable")
         }
     }
     return columnVectors
-}
-
-// TODO: Only print the first n rows
-public func printTable(rows: [[CustomStringConvertible]], columnNames: [String]) {
-    let textTableColumns: [TextTableColumn] = columnNames.map { TextTableColumn(header: $0) }
-    var textTable = TextTable(columns: textTableColumns)
-    for rowVector in rows {
-        textTable.addRow(values: rowVector)
-    }
-    let tableString = textTable.render()
-    print(tableString)
-}
-
-public func printTable(columns: [[CustomStringConvertible]], columnNames: [String]) {
-    for columnVector in columns {
-        assert(columnVector.count == columns[0].count)
-    }
-    // TODO: This is very inefficient. Should simply be able to create a column with columnar values rather than
-    //  adding by row
-    var rowVectors: [[CustomStringConvertible]] = []
-    for i in 0..<columns[0].count {
-        let rowVector = columns.map { $0[i] }
-        rowVectors.append(rowVector)
-    }
-    printTable(rows: rowVectors, columnNames: columnNames)
 }
