@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "Arrow",
+    name: "SwiftArrow",
     platforms: [
        .macOS(.v10_15)
     ],
     products: [
-        .library(name: "Arrow", targets: ["Arrow"])
+        .library(name: "SwiftArrow", targets: ["SwiftArrow"])
     ],
     dependencies: [
         .package(name: "SwiftyTextTable",
@@ -20,7 +20,7 @@ let package = Package(
                 .brew(["apache-arrow-glib"]),
                 .apt(["libarrow-glib-dev"])
             ]),
-        .target(name: "Arrow", dependencies: ["CArrow", "SwiftyTextTable"]),
-        .testTarget(name: "ArrowTests", dependencies: ["Arrow"])
+        .target(name: "SwiftArrow", dependencies: ["CArrow", "SwiftyTextTable"]),
+        .testTarget(name: "ArrowTests", dependencies: ["SwiftArrow"])
     ]
 )
