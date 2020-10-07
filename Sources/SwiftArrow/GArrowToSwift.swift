@@ -24,6 +24,7 @@ func gArrowTableColumnToSwift<T: ArrowArrayElement>(gTable: UnsafeMutablePointer
 func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[CustomStringConvertible]] {
     var columnVectors: [[CustomStringConvertible]] = []
     let numColumns = garrow_table_get_n_columns(gTable)
+    let timestampDataType = garrow_timestamp_data_type_new(GARROW_TIME_UNIT_NANO)
     for i in 0..<numColumns {
         if let chunkedArray = garrow_table_get_column_data(gTable, Int32(i)),
            let gArray = gArrowChunkedArrayToGArrow(chunkedArray) {
@@ -42,6 +43,9 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[C
                 columnVectors.append(swiftArray)
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_boolean_data_type_new())) == 1 {
                 let swiftArray: [Bool] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+                columnVectors.append(swiftArray)
+            } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(timestampDataType)) == 1 {
+                let swiftArray: [Date] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
                 columnVectors.append(swiftArray)
             } else {
                 try throwUnsupportedDataType(dataType: dataType, source: "gArrowTableToSwift")

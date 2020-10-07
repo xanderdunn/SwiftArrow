@@ -11,9 +11,17 @@ final class ArrowLibTests: XCTestCase {
         if let result = try T.self.toGArrowArray(array: values1),
            let result2 = try T.self.toGArrowArray(array: values2) {
             let valuesDecoded: [T] = T.self.fromGArrowArray(result)
-            XCTAssertEqual(valuesDecoded, values1)
+            if let valuesDecoded = valuesDecoded as? [Date], let values1 = values1 as? [Date] {
+                XCTAssertTrue(Date.datesEqual(array1: valuesDecoded, array2: values1))
+            } else {
+                XCTAssertEqual(valuesDecoded, values1)
+            }
             let values2Decoded: [T] = T.self.fromGArrowArray(result2)
-            XCTAssertEqual(values2Decoded, values2)
+            if let values2Decoded = values2Decoded as? [Date], let values2 = values2 as? [Date] {
+                XCTAssertTrue(Date.datesEqual(array1: values2Decoded, array2: values2))
+            } else {
+                XCTAssertEqual(values2Decoded, values2)
+            }
             // Create table from arrays
             let table = try gArraysToGTable(arrays: [result, result2], columns: columnNames)
             if let table = table {
@@ -26,9 +34,17 @@ final class ArrowLibTests: XCTestCase {
             let outputPath = "./test\(T.self).feather"
             if let table = table {
                 let column0: [T] = try gArrowTableColumnToSwift(gTable: table, column: 0)
-                XCTAssertEqual(column0, values1)
+                if let column0 = column0 as? [Date], let values1 = values1 as? [Date] {
+                    XCTAssertTrue(Date.datesEqual(array1: values1, array2: column0))
+                } else {
+                    XCTAssertEqual(column0, values1)
+                }
                 let column1: [T] = try gArrowTableColumnToSwift(gTable: table, column: 1)
-                XCTAssertEqual(column1, values2)
+                if let column1 = column1 as? [Date], let values2 = values2 as? [Date] {
+                    XCTAssertTrue(Date.datesEqual(array1: values2, array2: column1))
+                } else {
+                    XCTAssertEqual(column1, values2)
+                }
                 try saveGTableToFeather(table, outputPath: outputPath)
                 print("Saved to \(outputPath)")
             }
@@ -43,9 +59,19 @@ final class ArrowLibTests: XCTestCase {
             let deserializedColumnsNames = try gArrowTableGetSchema(gTable)
             XCTAssertEqual(deserializedColumnsNames, columnNames)
             let column0: [T] = try gArrowTableColumnToSwift(gTable: gTable, column: 0)
-            XCTAssertEqual(column0, values1)
+            if let column0 = column0 as? [Date], let values1 = values1 as? [Date] {
+                XCTAssertTrue(Date.datesEqual(array1: values1, array2: column0))
+            } else {
+                XCTAssertEqual(column0, values1)
+            }
             let column1: [T] = try gArrowTableColumnToSwift(gTable: gTable, column: 1)
-            XCTAssertEqual(column1, values2)
+            if let column1 = column1 as? [Date], let values2 = values2 as? [Date] {
+                print(values2)
+                print(column1)
+                XCTAssertTrue(Date.datesEqual(array1: values2, array2: column1))
+            } else {
+                XCTAssertEqual(column1, values2)
+            }
             let columns = try gArrowTableToSwift(gTable: gTable)
             printTable(columns: columns, columnNames: deserializedColumnsNames)
         }
@@ -116,6 +142,63 @@ final class ArrowLibTests: XCTestCase {
         try testLoadFromFile(values1: stringValues1, values2: stringValues2, columnNames: stringColumnNames)
     }
 
+    // DATETIMEs
+    let dateValues1 = [Date(timeIntervalSince1970: 81817171.00001), Date(), Date(timeIntervalSinceNow: 1222222)]
+    let dateValues2 = [Date(), Date(timeIntervalSinceNow: -123.88888), Date(timeIntervalSince1970: -888.11413)]
+    let dateColumnNames = ["datesColumn1", "datesColumn2"]
+
+    func testCreateAndSaveDatesToFile() throws {
+        try testCreateAndSaveToFile(values1: dateValues1, values2: dateValues2, columnNames: dateColumnNames)
+    }
+
+    func testLoadDatesFromFile() throws {
+        try testLoadFromFile(values1: dateValues1, values2: dateValues2, columnNames: dateColumnNames)
+    }
+
+    func testSwiftMultipleTypesMatrixToFile() throws {
+        let row1: [BaseArrowArrayElement] = ["e12fe9879b95b35479a1195bd2190b10", 2137.8 as Double, Date(), false]
+        let row2: [BaseArrowArrayElement] = ["02528b1bca6c637a9d725488efa1de80",
+                                             2137.4 as Double,
+                                             Date(timeIntervalSinceNow: 1232.22),
+                                             true]
+        let row3: [BaseArrowArrayElement] = ["1de820d72a41bf02fdc55a8991797991", 879.5 as Double, Date(), true]
+        let rows = [row1, row2, row3]
+        if let rows = rows as? [[BaseArrowArrayElement]] {
+            print(rows)
+            // TODO
+        } else {
+            fatalError()
+        }
+    }
+
+    func testDateNanosecondsConversion() throws {
+        // TODO: The below test is not guaranteed to suceed. Sometimes it passes and sometimes it doesn't due to
+        //  floating point imprecision. See issue #1: https://github.com/xanderdunn/SwiftArrow/issues/1
+        /*let date = Date()*/
+        /*let nanoseconds = date.nanosecondsSince1970*/
+        /*let decodedDate = Date(nanoseconds: nanoseconds)*/
+        /*XCTAssertEqual(date, decodedDate)*/
+
+        let epochDateFromNanoseconds = Date(nanoseconds: 0)
+        let epochDateFromSeconds = Date(timeIntervalSince1970: 0.0)
+        XCTAssertEqual(epochDateFromSeconds, epochDateFromNanoseconds)
+    }
+
+    func testDateComparisons() throws {
+        let dates1 = [Date(),
+                      Date(timeIntervalSinceNow: 12342.9222),
+                      Date(timeIntervalSinceNow: -1234.444),
+                      Date(timeIntervalSince1970: -12341234.224234)]
+        let dates2 = dates1
+        let dates3 = [Date(),
+                      Date(timeIntervalSinceNow: 12342.921),
+                      Date(timeIntervalSinceNow: -1234.444),
+                      Date(timeIntervalSince1970: -12341234.224234)]
+
+        XCTAssertTrue(Date.datesEqual(array1: dates1, array2: dates2))
+        XCTAssertFalse(Date.datesEqual(array1: dates1, array2: dates3))
+    }
+
     static var allTests = [
         ("testCreateAndSaveDoublesToFile", testCreateAndSaveDoublesToFile),
         ("testLoadDoublesFromFile", testLoadDoublesFromFile),
@@ -126,6 +209,9 @@ final class ArrowLibTests: XCTestCase {
         ("testCreateAndSaveBoolsToFile", testCreateAndSaveBoolsToFile),
         ("testLoadBoolsFromFile", testLoadBoolsFromFile),
         ("testCreateAndSaveStringsToFile", testCreateAndSaveStringsToFile),
-        ("testLoadStringFromFile", testLoadStringFromFile)
+        ("testLoadStringFromFile", testLoadStringFromFile),
+        ("testDateNanosecondsConversion", testDateNanosecondsConversion),
+        ("testDateComparisons", testDateComparisons),
+        ("testSwiftMultipleTypesMatrixToFile", testSwiftMultipleTypesMatrixToFile)
     ]
 }

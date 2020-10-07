@@ -2,12 +2,49 @@ import Foundation
 
 import CArrow
 
-protocol BaseArrowArrayElement {
+public protocol BaseArrowArrayElement {
 }
 
 protocol ArrowArrayElement: Equatable, CustomStringConvertible, BaseArrowArrayElement {
     static func toGArrowArray(array: [Self]) throws -> UnsafeMutablePointer<GArrowArray>?
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Self]
+}
+
+extension Date: ArrowArrayElement {
+    static func toGArrowArray(array: [Date]) throws -> UnsafeMutablePointer<GArrowArray>? {
+        var error: UnsafeMutablePointer<GError>?
+        var result: gboolean
+        let timestampDataType = garrow_timestamp_data_type_new(GARROW_TIME_UNIT_NANO)
+        let arrayBuilder: UnsafeMutablePointer<GArrowTimestampArrayBuilder>? =
+            garrow_timestamp_array_builder_new(timestampDataType)
+        #if canImport(Darwin)
+        let numValues: Int64 = Int64(array.count)
+        #else
+        let numValues: Int = array.count
+        #endif
+        var cValues = array.map { $0.nanosecondsSince1970 }
+        result = garrow_timestamp_array_builder_append_values(arrayBuilder,
+                                                              &cValues,
+                                                              numValues,
+                                                              [],
+                                                              0,
+                                                              &error)
+        return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+    }
+
+    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Date] {
+        #if canImport(Darwin)
+        let n: Int64 = garrow_array_get_length(gArray)
+        #else
+        let n: Int = garrow_array_get_length(gArray)
+        #endif
+        var values: [Date] = []
+        for i in 0..<n {
+            let value: Int64 = garrow_timestamp_array_get_value(GARROW_TIMESTAMP_ARRAY(gArray), i)
+            values.append(Date(nanoseconds: value))
+        }
+        return values
+    }
 }
 
 extension String: ArrowArrayElement {
