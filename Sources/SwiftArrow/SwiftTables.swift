@@ -36,11 +36,11 @@ public func saveRowsToFeather(rows: [[BaseArrowArrayElement]], columnNames: [Str
     try saveColumnsToFeather(columns: columns, columnNames: columnNames, outputPath: outputPath)
 }
 
-public func readColumnsFromFeather(filePath: String) throws -> [[BaseArrowArrayElement]] {
+public func readColumnsFromFeather(filePath: String) throws -> ([[BaseArrowArrayElement]], [String]) {
     let gTable = try loadGTableFromFeather(filePath: filePath)
     if let gTable = gTable {
         let columns = try gArrowTableToSwift(gTable: gTable)
-        return columns
+        return (columns, try gArrowTableGetSchema(gTable))
     } else {
         throw ArrowError.failedRead("Failed to read .feather file from \(filePath)")
     }

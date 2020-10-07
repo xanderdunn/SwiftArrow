@@ -182,14 +182,16 @@ final class ArrowLibTests: XCTestCase {
         let row3: [Any] = ["1de820d72a41bf02fdc55a8991797991", 879.5 as Double, Date(), true]
         let rows = [row1, row2, row3]
         let filePath = "tableMultiple.feather"
+        let columnNames = ["id", "ask", "time", "prohibited"]
         if let rows = rows as? [[BaseArrowArrayElement]] {
-            try saveRowsToFeather(rows: rows, columnNames: ["id", "ask", "time", "prohibited"], outputPath: filePath)
+            try saveRowsToFeather(rows: rows, columnNames: columnNames, outputPath: filePath)
         } else {
             fatalError()
         }
 
-        let columnsDecoded = try readColumnsFromFeather(filePath: filePath)
+        let (columnsDecoded, columnNamesDecoded) = try readColumnsFromFeather(filePath: filePath)
         XCTAssertEqual(columnsDecoded[1][2] as? Double, 879.5)
+        XCTAssertEqual(columnNamesDecoded, columnNames)
     }
 
     func testDateNanosecondsConversion() throws {

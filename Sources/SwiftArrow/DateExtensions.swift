@@ -19,9 +19,6 @@ extension Date {
         for i in 0..<array1.count {
             let diff = abs(array1[i].timeIntervalSince1970 - array2[i].timeIntervalSince1970)
             if diff >= 0.001 {
-                print("FALSE:")
-                print(array1[i].timeIntervalSince1970)
-                print(array2[i].timeIntervalSince1970)
                 return false
             }
         }
