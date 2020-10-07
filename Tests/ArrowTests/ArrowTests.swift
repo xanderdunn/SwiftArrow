@@ -226,6 +226,8 @@ final class ArrowLibTests: XCTestCase {
         ("testLoadBoolsFromFile", testLoadBoolsFromFile),
         ("testCreateAndSaveStringsToFile", testCreateAndSaveStringsToFile),
         ("testLoadStringFromFile", testLoadStringFromFile),
+        ("testCreateAndSaveDatesToFile", testCreateAndSaveDatesToFile),
+        ("testLoadDatesFromFile", testLoadDatesFromFile),
         ("testDateNanosecondsConversion", testDateNanosecondsConversion),
         ("testDateComparisons", testDateComparisons),
         ("testSwiftSingleTypeMatrixToFile", testSwiftSingleTypeMatrixToFile),

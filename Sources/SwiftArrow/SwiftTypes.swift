@@ -19,10 +19,11 @@ extension Date: ArrowArrayElement {
             garrow_timestamp_array_builder_new(timestampDataType)
         #if canImport(Darwin)
         let numValues: Int64 = Int64(array.count)
+        var cValues = array.map { $0.nanosecondsSince1970 }
         #else
         let numValues: Int = array.count
+        var cValues = array.map { Int($0.nanosecondsSince1970) }
         #endif
-        var cValues = array.map { $0.nanosecondsSince1970 }
         result = garrow_timestamp_array_builder_append_values(arrayBuilder,
                                                               &cValues,
                                                               numValues,
@@ -40,7 +41,11 @@ extension Date: ArrowArrayElement {
         #endif
         var values: [Date] = []
         for i in 0..<n {
+            #if canImport(Darwin)
             let value: Int64 = garrow_timestamp_array_get_value(GARROW_TIMESTAMP_ARRAY(gArray), i)
+            #else
+            let value: Int64 = Int64(garrow_timestamp_array_get_value(GARROW_TIMESTAMP_ARRAY(gArray), i))
+            #endif
             values.append(Date(nanoseconds: value))
         }
         return values
