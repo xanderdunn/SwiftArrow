@@ -230,6 +230,9 @@ extension Bool: ArrowArrayElement {
     }
 }
 
+/**
+Used to finish the creation of a GArrowArray
+*/
 func completeGArrayBuilding(result: gboolean,
                             error: UnsafeMutablePointer<GError>?,
                             arrayBuilder: UnsafeMutablePointer<GArrowArrayBuilder>) throws ->

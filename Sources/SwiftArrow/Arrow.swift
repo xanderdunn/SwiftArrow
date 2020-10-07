@@ -40,7 +40,7 @@ func gArraysToGTable(arrays: [UnsafeMutablePointer<GArrowArray>?],
     let schema = garrow_schema_new(fields)
     var error: UnsafeMutablePointer<GError>?
     var arrays = arrays
-    let table = garrow_table_new_arrays(schema, &arrays, 2, &error)
+    let table = garrow_table_new_arrays(schema, &arrays, UInt(arrays.count), &error)
     if let error = error {
         let errorString: String = String(cString: error.pointee.message)
         g_error_free(error)

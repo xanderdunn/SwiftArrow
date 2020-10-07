@@ -155,17 +155,33 @@ final class ArrowLibTests: XCTestCase {
         try testLoadFromFile(values1: dateValues1, values2: dateValues2, columnNames: dateColumnNames)
     }
 
+    func testSwiftSingleTypeMatrixToFile() throws {
+        let row1: [Any] = ["e12fe9879b95b35479a1195bd2190b10", false, "asf"]
+        let row2: [Any] = ["02528b1bca6c637a9d725488efa1de80", true, "asdf"]
+        let column1: [String] = ["e12fe9879b95b35479a1195bd2190b10", "02528b1bca6c637a9d725488efa1de80", "bar"]
+        let column2: [String] = ["test", "test2", "foo"]
+        let column3: [String] = ["asf", "asdf", "asdfasd"]
+        let columns: [[BaseArrowArrayElement]] = [column1, column2, column3]
+        let columnNames = ["id", "stuff", "stuff2"]
+        try saveColumnsToFeather(columns: columns, columnNames: columnNames, outputPath: "tableSingle.feather")
+        let rows = [row1, row2]
+        if let rows = rows as? [[BaseArrowArrayElement]] {
+            try saveRowsToFeather(rows: rows, columnNames: columnNames, outputPath: "tableSingle.feather")
+        } else {
+            fatalError()
+        }
+    }
+
     func testSwiftMultipleTypesMatrixToFile() throws {
-        let row1: [BaseArrowArrayElement] = ["e12fe9879b95b35479a1195bd2190b10", 2137.8 as Double, Date(), false]
-        let row2: [BaseArrowArrayElement] = ["02528b1bca6c637a9d725488efa1de80",
+        let row1: [Any] = ["e12fe9879b95b35479a1195bd2190b10", 2137.8 as Double, Date(), false]
+        let row2: [Any] = ["02528b1bca6c637a9d725488efa1de80",
                                              2137.4 as Double,
                                              Date(timeIntervalSinceNow: 1232.22),
                                              true]
-        let row3: [BaseArrowArrayElement] = ["1de820d72a41bf02fdc55a8991797991", 879.5 as Double, Date(), true]
+        let row3: [Any] = ["1de820d72a41bf02fdc55a8991797991", 879.5 as Double, Date(), true]
         let rows = [row1, row2, row3]
         if let rows = rows as? [[BaseArrowArrayElement]] {
-            print(rows)
-            // TODO
+            try saveRowsToFeather(rows: rows, columnNames: ["id", "ask", "time", "prohibited"], outputPath: "table.feather")
         } else {
             fatalError()
         }
@@ -212,6 +228,7 @@ final class ArrowLibTests: XCTestCase {
         ("testLoadStringFromFile", testLoadStringFromFile),
         ("testDateNanosecondsConversion", testDateNanosecondsConversion),
         ("testDateComparisons", testDateComparisons),
+        ("testSwiftSingleTypeMatrixToFile", testSwiftSingleTypeMatrixToFile),
         ("testSwiftMultipleTypesMatrixToFile", testSwiftMultipleTypesMatrixToFile)
     ]
 }
