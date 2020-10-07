@@ -2,10 +2,10 @@ import Foundation
 
 import CArrow
 
-public protocol BaseArrowArrayElement {
+public protocol BaseArrowArrayElement: CustomStringConvertible {
 }
 
-protocol ArrowArrayElement: Equatable, CustomStringConvertible, BaseArrowArrayElement {
+protocol ArrowArrayElement: Equatable, BaseArrowArrayElement {
     static func toGArrowArray(array: [Self]) throws -> UnsafeMutablePointer<GArrowArray>?
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Self]
 }

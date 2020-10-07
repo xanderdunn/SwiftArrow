@@ -4,6 +4,7 @@ import class Foundation.Bundle
 @testable import SwiftArrow
 
 final class ArrowLibTests: XCTestCase {
+    // TODO: In setUP and tear down, delete all .feather files
 
     func testCreateAndSaveToFile<T: ArrowArrayElement>(values1: [T], values2: [T], columnNames: [String]) throws {
         print("Creating arrays, table from arrays, and saving table to .feather file:")
@@ -180,11 +181,15 @@ final class ArrowLibTests: XCTestCase {
                                              true]
         let row3: [Any] = ["1de820d72a41bf02fdc55a8991797991", 879.5 as Double, Date(), true]
         let rows = [row1, row2, row3]
+        let filePath = "tableMultiple.feather"
         if let rows = rows as? [[BaseArrowArrayElement]] {
-            try saveRowsToFeather(rows: rows, columnNames: ["id", "ask", "time", "prohibited"], outputPath: "table.feather")
+            try saveRowsToFeather(rows: rows, columnNames: ["id", "ask", "time", "prohibited"], outputPath: filePath)
         } else {
             fatalError()
         }
+
+        let columnsDecoded = try readColumnsFromFeather(filePath: filePath)
+        XCTAssertEqual(columnsDecoded[1][2] as? Double, 879.5)
     }
 
     func testDateNanosecondsConversion() throws {

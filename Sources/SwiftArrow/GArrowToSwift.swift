@@ -21,8 +21,8 @@ func gArrowTableColumnToSwift<T: ArrowArrayElement>(gTable: UnsafeMutablePointer
     }
 }
 
-func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[CustomStringConvertible]] {
-    var columnVectors: [[CustomStringConvertible]] = []
+func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[BaseArrowArrayElement]] {
+    var columnVectors: [[BaseArrowArrayElement]] = []
     let numColumns = garrow_table_get_n_columns(gTable)
     let timestampDataType = garrow_timestamp_data_type_new(GARROW_TIME_UNIT_NANO)
     for i in 0..<numColumns {

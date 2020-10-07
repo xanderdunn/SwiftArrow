@@ -35,3 +35,13 @@ public func saveRowsToFeather(rows: [[BaseArrowArrayElement]], columnNames: [Str
     let columns = rows.transposed()
     try saveColumnsToFeather(columns: columns, columnNames: columnNames, outputPath: outputPath)
 }
+
+public func readColumnsFromFeather(filePath: String) throws -> [[BaseArrowArrayElement]] {
+    let gTable = try loadGTableFromFeather(filePath: filePath)
+    if let gTable = gTable {
+        let columns = try gArrowTableToSwift(gTable: gTable)
+        return columns
+    } else {
+        throw ArrowError.failedRead("Failed to read .feather file from \(filePath)")
+    }
+}
