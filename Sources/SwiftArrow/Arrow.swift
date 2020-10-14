@@ -15,12 +15,15 @@ enum ArrowError: Error {
 }
 
 func gArrowChunkedArrayToGArrow(_ chunkedArray: UnsafeMutablePointer<GArrowChunkedArray>) ->
-                                                                                UnsafeMutablePointer<GArrowArray>? {
+                                                                                [UnsafeMutablePointer<GArrowArray>?] {
     let numChunks = garrow_chunked_array_get_n_chunks(chunkedArray)
-    // TODO: Support arbitrary chunks
-    assert(numChunks == 1) // Only support single chunk arrays right now
-    let gArrowArray = garrow_chunked_array_get_chunk(chunkedArray, 0)
-    return gArrowArray
+    // Support arbitrary chunks
+    var gArrowArrays: [UnsafeMutablePointer<GArrowArray>?] = []
+    for i in 0..<numChunks {
+        let gArrowArray = garrow_chunked_array_get_chunk(chunkedArray, i)
+        gArrowArrays.append(gArrowArray)
+    }
+    return gArrowArrays
 }
 
 /**

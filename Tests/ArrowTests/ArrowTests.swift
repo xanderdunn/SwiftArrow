@@ -195,7 +195,7 @@ final class ArrowLibTests: XCTestCase {
     }
 
     func testDateNanosecondsConversion() throws {
-        // TODO: The below test is not guaranteed to suceed. Sometimes it passes and sometimes it doesn't due to
+        // TODO: The below test is not guaranteed to succeed. Sometimes it passes and sometimes it doesn't due to
         //  floating point imprecision. See issue #1: https://github.com/xanderdunn/SwiftArrow/issues/1
         /*let date = Date()*/
         /*let nanoseconds = date.nanosecondsSince1970*/
@@ -222,6 +222,27 @@ final class ArrowLibTests: XCTestCase {
         XCTAssertFalse(Date.datesEqual(array1: dates1, array2: dates3))
     }
 
+    func testMultiChunkArrays() {
+        let numRows = 100_000
+        let randomColumnValues: [Double] = (0..<numRows).map { Double.random(in: 0.0...Double($0)) }
+        let longColumnTable = [randomColumnValues]
+        do {
+            let filePath = "./longColumnTable.feather"
+            try saveColumnsToFeather(columns: longColumnTable,
+                                     columnNames: ["Test 42 Column"],
+                                     outputPath: filePath)
+            let (decodedColumns, _) = try readColumnsFromFeather(filePath: filePath)
+            XCTAssertEqual(decodedColumns[0].count, numRows)
+            if let doubleColumn = decodedColumns[0] as? [Double] {
+                XCTAssertEqual(doubleColumn, randomColumnValues)
+            } else {
+                assertionFailure("Expected the column to be Double values")
+            }
+        } catch {
+            print("Failed")
+        }
+    }
+
     static var allTests = [
         ("testCreateAndSaveDoublesToFile", testCreateAndSaveDoublesToFile),
         ("testLoadDoublesFromFile", testLoadDoublesFromFile),
@@ -238,6 +259,7 @@ final class ArrowLibTests: XCTestCase {
         ("testDateNanosecondsConversion", testDateNanosecondsConversion),
         ("testDateComparisons", testDateComparisons),
         ("testSwiftSingleTypeMatrixToFile", testSwiftSingleTypeMatrixToFile),
-        ("testSwiftMultipleTypesMatrixToFile", testSwiftMultipleTypesMatrixToFile)
+        ("testSwiftMultipleTypesMatrixToFile", testSwiftMultipleTypesMatrixToFile),
+        ("testMultiChunkArrays", testMultiChunkArrays)
     ]
 }
