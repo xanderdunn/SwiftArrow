@@ -200,6 +200,49 @@ extension Int: ArrowArrayElement {
     }
 }
 
+extension Int64: ArrowArrayElement {
+    static func toGArrowArray(array: [Int64]) throws -> UnsafeMutablePointer<GArrowArray>? {
+        var error: UnsafeMutablePointer<GError>?
+        var result: gboolean
+        let arrayBuilder: UnsafeMutablePointer<GArrowInt64ArrayBuilder>? = garrow_int64_array_builder_new()
+        #if canImport(Darwin)
+        let numValues: Int64 = Int64(array.count)
+        #else
+        let numValues: Int = array.count
+        #endif
+        #if canImport(Darwin)
+        var array = array.map { Int64($0) }
+        #else
+        var array = array.map { Int($0) }
+        #endif
+        result = garrow_int64_array_builder_append_values(arrayBuilder,
+                                                          &array,
+                                                          numValues,
+                                                          [],
+                                                          0,
+                                                          &error)
+        return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+    }
+
+    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Int64] {
+        #if canImport(Darwin)
+        let n: Int64 = garrow_array_get_length(gArray)
+        #else
+        let n: Int = garrow_array_get_length(gArray)
+        #endif
+        var values: [Int64] = []
+        for i in 0..<n {
+            #if canImport(Darwin)
+            let value: Int64 = garrow_int64_array_get_value(GARROW_INT64_ARRAY(gArray), i)
+            #else
+            let value: Int64 = Int64(garrow_int64_array_get_value(GARROW_INT64_ARRAY(gArray), i))
+            #endif
+            values.append(value)
+        }
+        return values
+    }
+}
+
 extension Bool: ArrowArrayElement {
     static func toGArrowArray(array: [Bool]) throws -> UnsafeMutablePointer<GArrowArray>? {
         var error: UnsafeMutablePointer<GError>?
