@@ -14,6 +14,8 @@ func baseTypeToGArray(column: [BaseArrowArrayElement]) throws -> UnsafeMutablePo
         return try Double.toGArrowArray(array: column)
     } else if let column = column as? [Int] {
         return try Int.toGArrowArray(array: column)
+    } else if let column = column as? [Int64] {
+        return try Int64.toGArrowArray(array: column)
     } else if let column = column as? [Bool] {
         return try Bool.toGArrowArray(array: column)
     } else {
