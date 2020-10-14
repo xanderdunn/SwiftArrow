@@ -224,19 +224,25 @@ final class ArrowLibTests: XCTestCase {
 
     func testMultiChunkArrays() {
         let numRows = 100_000
-        let randomColumnValues: [Double] = (0..<numRows).map { Double.random(in: 0.0...Double($0)) }
-        let longColumnTable = [randomColumnValues]
+        let randomColumnValues1: [Double] = (0..<numRows).map { Double.random(in: 0.0...Double($0)) }
+        let randomColumnValues2: [Int] = (0..<numRows).map { Int.random(in: 0...$0) }
+        let longColumnTable: [[BaseArrowArrayElement]] = [randomColumnValues1, randomColumnValues2]
+        let columnNames = ["Test 42 Column", "Test Long Column of Ints"]
         do {
             let filePath = "./longColumnTable.feather"
             try saveColumnsToFeather(columns: longColumnTable,
-                                     columnNames: ["Test 42 Column"],
+                                     columnNames: columnNames,
                                      outputPath: filePath)
-            let (decodedColumns, _) = try readColumnsFromFeather(filePath: filePath)
+            let (decodedColumns, decodedColumnNames) = try readColumnsFromFeather(filePath: filePath)
             XCTAssertEqual(decodedColumns[0].count, numRows)
-            if let doubleColumn = decodedColumns[0] as? [Double] {
-                XCTAssertEqual(doubleColumn, randomColumnValues)
+            XCTAssertEqual(decodedColumns[1].count, numRows)
+            XCTAssertEqual(decodedColumnNames, columnNames)
+            if let doubleColumn1 = decodedColumns[0] as? [Double],
+               let doubleColumn2 = decodedColumns[1] as? [Int] {
+                XCTAssertEqual(doubleColumn1, randomColumnValues1)
+                XCTAssertEqual(doubleColumn2, randomColumnValues2)
             } else {
-                assertionFailure("Expected the column to be Double values")
+                assertionFailure("Expected the column to be Double and Int values")
             }
         } catch {
             print("Failed")
