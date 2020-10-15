@@ -31,7 +31,10 @@ GList usage from here: https://github.com/apache/arrow/blob/master/c_glib/arrow-
 */
 func gArraysToGTable(arrays: [UnsafeMutablePointer<GArrowArray>?],
                      columns: [String]) throws -> UnsafeMutablePointer<GArrowTable>? {
-    assert(arrays.count == columns.count, "Got \(arrays) column arrays but \(columns.count) column names, must be equal.")
+    let logText = """
+    Got \(arrays.count) column arrays but \(columns.count) column names, must be equal.
+    """
+    assert(arrays.count == columns.count, logText)
     var fields: UnsafeMutablePointer<GList>?
     for (i, column) in columns.enumerated() {
         let cString = column.cString(using: .utf8)
