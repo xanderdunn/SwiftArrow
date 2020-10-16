@@ -1,5 +1,5 @@
 module CArrowLinux [system] {
-    header "arrow_bridging.h"
+    umbrella header "arrow_bridging.h"
 
     link "arrow-glib"
 
@@ -7,7 +7,7 @@ module CArrowLinux [system] {
 }
 
 module CArrowMac [system] {
-    header "/usr/local/Cellar/apache-arrow-glib/1.0.1/include/arrow-glib/arrow-glib.h"
+    umbrella header "/usr/local/Cellar/apache-arrow-glib/1.0.1/include/arrow-glib/arrow-glib.h"
 
     link "arrow-glib"
 
