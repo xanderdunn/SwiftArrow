@@ -1,5 +1,13 @@
-module CArrow [system] {
-	header "arrow_bridging.h"
+module CArrowLinux [system] {
+    header "arrow_bridging.h"
+
+    link "arrow-glib"
+
+	export *
+}
+
+module CArrowMac [system] {
+    header "/usr/local/Cellar/apache-arrow-glib/1.0.1/include/arrow-glib/arrow-glib.h"
 
     link "arrow-glib"
 

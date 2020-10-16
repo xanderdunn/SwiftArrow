@@ -1,6 +1,10 @@
 import Foundation
 
-import CArrow
+#if canImport(Darwin)
+import CArrowMac
+#else
+import CArrowLinux
+#endif
 
 func baseTypeToGArray(column: [BaseArrowArrayElement]) throws -> UnsafeMutablePointer<GArrowArray>? {
     let elementType = type(of: column).Element.self

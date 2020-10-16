@@ -1,6 +1,10 @@
 import Foundation
 
-import CArrow
+#if canImport(Darwin)
+import CArrowMac
+#else
+import CArrowLinux
+#endif
 
 public protocol BaseArrowArrayElement: CustomStringConvertible {
 }

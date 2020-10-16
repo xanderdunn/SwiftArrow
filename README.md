@@ -9,7 +9,9 @@
 - On macOS:
     - `brew install apache-arrow-glib`
 - Generate and build the Swift files:
-    - `./build.sh`
+    - `swift build`
+- Test:
+    - `swift test`
 
 ### Development
 - This is based on [SwiftAtk](https://github.com/rhx/SwiftAtk)

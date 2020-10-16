@@ -1,6 +1,10 @@
 import Foundation
 
-import CArrow
+#if canImport(Darwin)
+import CArrowMac
+#else
+import CArrowLinux
+#endif
 
 func throwUnsupportedDataType(dataType: UnsafeMutablePointer<GArrowDataType>?, source: String) throws {
     var errorString = "Got GArrowArray with unsupported data type in call \(source)"
