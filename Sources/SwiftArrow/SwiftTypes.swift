@@ -254,12 +254,13 @@ extension Bool: ArrowArrayElement {
         let numValues: Int = array.count
         #endif
         var intValues = array.map { $0 ? Int32(1) : Int32(0) }
+        print(intValues)
         result = garrow_boolean_array_builder_append_values(arrayBuilder,
-                                                          &intValues,
-                                                          numValues,
-                                                          [],
-                                                          0,
-                                                          &error)
+                                                            &intValues,
+                                                            numValues,
+                                                            [],
+                                                            0,
+                                                            &error)
         return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
