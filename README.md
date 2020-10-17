@@ -14,7 +14,6 @@
     - `swift test`
 
 ### Development
-- This is based on [SwiftAtk](https://github.com/rhx/SwiftAtk)
 - The pkg-config file is at `/usr/lib/x86_64-linux-gnu/pkgconfig/arrow.pc`
 - `pkg-config --cflags arrow-glib`
 - Apache Arrow GLib interface documentation [here](https://arrow.apache.org/docs/c_glib/arrow-glib/)
