@@ -21,8 +21,7 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[B
         throw ArrowError.invalidTableCreation(errorString)
     }
 
-    // TODO: Parallelize this
-    let columnVectors = try (0..<numColumns).map { i -> [BaseArrowArrayElement] in
+    let columnVectors = Array(0..<numColumns).concurrentMap { i -> [BaseArrowArrayElement] in
         if let gTable = gTable, let chunkedArray = garrow_table_get_column_data(gTable, Int32(i)),
            let gArray = garrow_chunked_array_get_chunk(chunkedArray, 0) {
             let dataType = garrow_chunked_array_get_value_data_type(chunkedArray)
@@ -52,10 +51,12 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[B
                     let swiftTypeString = String(cString: typeString)
                     errorString += ": \(swiftTypeString)"
                 }
-                throw ArrowError.unsupportedDataType(errorString)
+                return []
+                /*throw ArrowError.unsupportedDataType(errorString)*/
             }
         } else {
-            throw ArrowError.invalidArrayCreation("Couldn't get GArrowArray from GArrowTable")
+            return []
+            /*throw ArrowError.invalidArrayCreation("Couldn't get GArrowArray from GArrowTable")*/
         }
     }
     return columnVectors
