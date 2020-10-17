@@ -15,13 +15,8 @@ func throwUnsupportedDataType(dataType: UnsafeMutablePointer<GArrowDataType>?, s
     throw ArrowError.unsupportedDataType(errorString)
 }
 
-func gArrowTableColumnToSwift<T: ArrowArrayElement>(gTable: UnsafeMutablePointer<GArrowTable>,
-                                                    column: Int32) throws -> [T] {
-    if let gArrowArray = garrow_chunked_array_get_chunk(garrow_table_get_column_data(gTable, column), 0) {
-        return T.self.fromGArrowArray(gArrowArray)
-    } else {
-        throw ArrowError.failedRead("Couldn't get column from GArrowTable")
-    }
+func gArrowTableColumnToSwift<T: ArrowArrayElement>(gArray: UnsafeMutablePointer<GArrowArray>) -> [T] {
+    return T.self.fromGArrowArray(gArray)
 }
 
 // TODO: Parallelize this across columns
@@ -38,28 +33,29 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[B
     }
 
     for i in 0..<numColumns {
-        if let gTable = gTable, let chunkedArray = garrow_table_get_column_data(gTable, Int32(i)) {
+        if let gTable = gTable, let chunkedArray = garrow_table_get_column_data(gTable, Int32(i)),
+           let gArray = garrow_chunked_array_get_chunk(chunkedArray, 0) {
             let dataType = garrow_chunked_array_get_value_data_type(chunkedArray)
             if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {
-                let swiftArray: [Double] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+                let swiftArray: [Double] = gArrowTableColumnToSwift(gArray: gArray)
                 columnVectors.append(swiftArray)
             /*if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {*/
                 /*let swiftArray: [Double] = Array(gArray: )*/
                 /*columnVectors.append(swiftArray)*/
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_string_data_type_new())) == 1 {
-                let swiftArray: [String] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+                let swiftArray: [String] = gArrowTableColumnToSwift(gArray: gArray)
                 columnVectors.append(swiftArray)
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_float_data_type_new())) == 1 {
-                let swiftArray: [Float] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+                let swiftArray: [Float] = gArrowTableColumnToSwift(gArray: gArray)
                 columnVectors.append(swiftArray)
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_int64_data_type_new())) == 1 {
-                let swiftArray: [Int] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+                let swiftArray: [Int] = gArrowTableColumnToSwift(gArray: gArray)
                 columnVectors.append(swiftArray)
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_boolean_data_type_new())) == 1 {
-                let swiftArray: [Bool] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+                let swiftArray: [Bool] = gArrowTableColumnToSwift(gArray: gArray)
                 columnVectors.append(swiftArray)
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(timestampDataType)) == 1 {
-                let swiftArray: [Date] = try gArrowTableColumnToSwift(gTable: gTable, column: Int32(i))
+                let swiftArray: [Date] = gArrowTableColumnToSwift(gArray: gArray)
                 columnVectors.append(swiftArray)
             } else {
                 try throwUnsupportedDataType(dataType: dataType, source: "gArrowTableToSwift")

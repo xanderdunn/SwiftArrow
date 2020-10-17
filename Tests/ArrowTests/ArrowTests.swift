@@ -34,17 +34,22 @@ final class ArrowLibTests: XCTestCase {
             // Save Table to feather file
             let outputPath = "./test\(T.self).feather"
             if let table = table {
-                let column0: [T] = try gArrowTableColumnToSwift(gTable: table, column: 0)
+                let columns = try gArrowTableToSwift(gTable: table)
+                let column0 = columns[0]
                 if let column0 = column0 as? [Date], let values1 = values1 as? [Date] {
                     XCTAssertTrue(Date.datesEqual(array1: values1, array2: column0))
-                } else {
+                } else if let column0 = column0 as? [T] {
                     XCTAssertEqual(column0, values1)
+                } else {
+                    assertionFailure()
                 }
-                let column1: [T] = try gArrowTableColumnToSwift(gTable: table, column: 1)
+                let column1 = columns[1]
                 if let column1 = column1 as? [Date], let values2 = values2 as? [Date] {
                     XCTAssertTrue(Date.datesEqual(array1: values2, array2: column1))
-                } else {
+                } else if let column1 = column1 as? [T] {
                     XCTAssertEqual(column1, values2)
+                } else {
+                    assertionFailure()
                 }
                 try saveGTableToFeather(table, outputPath: outputPath)
                 print("Saved to \(outputPath)")
@@ -57,23 +62,27 @@ final class ArrowLibTests: XCTestCase {
         let filePath = "./test\(T.self).feather"
         let gTable = try loadGTableFromFeather(filePath: filePath)
         if let gTable = gTable {
+            let columns = try gArrowTableToSwift(gTable: gTable)
             let deserializedColumnsNames = try gArrowTableGetSchema(gTable)
             XCTAssertEqual(deserializedColumnsNames, columnNames)
-            let column0: [T] = try gArrowTableColumnToSwift(gTable: gTable, column: 0)
+            let column0 = columns[0]
             if let column0 = column0 as? [Date], let values1 = values1 as? [Date] {
                 XCTAssertTrue(Date.datesEqual(array1: values1, array2: column0))
-            } else {
+            } else if let column0 = column0 as? [T] {
                 XCTAssertEqual(column0, values1)
+            } else {
+                assertionFailure()
             }
-            let column1: [T] = try gArrowTableColumnToSwift(gTable: gTable, column: 1)
+            let column1 = columns[1]
             if let column1 = column1 as? [Date], let values2 = values2 as? [Date] {
                 print(values2)
                 print(column1)
                 XCTAssertTrue(Date.datesEqual(array1: values2, array2: column1))
-            } else {
+            } else if let column1 = column1 as? [T] {
                 XCTAssertEqual(column1, values2)
+            } else {
+                assertionFailure()
             }
-            let columns = try gArrowTableToSwift(gTable: gTable)
             printTable(columns: columns, columnNames: deserializedColumnsNames)
         }
     }
