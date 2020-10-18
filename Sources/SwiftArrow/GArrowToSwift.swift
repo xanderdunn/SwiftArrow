@@ -38,11 +38,17 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[B
                 let swiftArray: [String] = gArrowTableColumnToSwift(gArray: gArray)
                 return swiftArray
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_float_data_type_new())) == 1 {
-                let swiftArray: [Float] = gArrowTableColumnToSwift(gArray: gArray)
-                return swiftArray
+                if let swiftArray: [Float] = Array(gArray: gArray) {
+                    return swiftArray
+                } else {
+                    return []
+                }
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_int64_data_type_new())) == 1 {
-                let swiftArray: [Int] = gArrowTableColumnToSwift(gArray: gArray)
-                return swiftArray
+                if let swiftArray: [Int] = Array(gArray: gArray) {
+                    return swiftArray
+                } else {
+                    return []
+                }
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_boolean_data_type_new())) == 1 {
                 let swiftArray: [Bool] = gArrowTableColumnToSwift(gArray: gArray)
                 return swiftArray
