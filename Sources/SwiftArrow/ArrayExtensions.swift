@@ -7,7 +7,7 @@ extension RandomAccessCollection {
     /// Returns `self.map(transform)`, computed in parallel.
     ///
     /// - Requires: `transform` is safe to call from multiple threads.
-    func concurrentMap<B>(minBatchSize: Int = 4096, _ transform: (Element) -> B) -> [B] {
+    func concurrentMap<B>(minBatchSize: Int = 1, _ transform: (Element) -> B) -> [B] {
         precondition(minBatchSize >= 1)
         let n = self.count
         let batchCount = (n + minBatchSize - 1) / minBatchSize
