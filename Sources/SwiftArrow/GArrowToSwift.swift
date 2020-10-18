@@ -25,11 +25,15 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[B
         if let gTable = gTable, let chunkedArray = garrow_table_get_column_data(gTable, Int32(i)),
            let gArray = garrow_chunked_array_get_chunk(chunkedArray, 0) {
             let dataType = garrow_chunked_array_get_value_data_type(chunkedArray)
-            if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {
-                let swiftArray: [Double] = gArrowTableColumnToSwift(gArray: gArray)
-                return swiftArray
             /*if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {*/
-                /*let swiftArray: [Double] = Array(gArray: )*/
+                /*let swiftArray: [Double] = gArrowTableColumnToSwift(gArray: gArray)*/
+                /*return swiftArray*/
+            if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {
+                if let swiftArray: [Double] = Array(gArray: gArray) {
+                    return swiftArray
+                } else {
+                    return []
+                }
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_string_data_type_new())) == 1 {
                 let swiftArray: [String] = gArrowTableColumnToSwift(gArray: gArray)
                 return swiftArray

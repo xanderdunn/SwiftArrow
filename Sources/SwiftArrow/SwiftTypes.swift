@@ -126,33 +126,35 @@ extension Double: ArrowArrayElement {
     }
 }
 
-/*protocol ConvertibleFromGArrowArray {*/
-    /*init?(gArray: UnsafeMutablePointer<GArrowArray>?)*/
-/*}*/
+protocol ConvertibleFromGArrowArray {
+    init?(gArray: UnsafeMutablePointer<GArrowArray>?)
+}
 
-/*extension Array: ConvertibleFromGArrowArray*/
-/*where Element: ArrowArrayElement {*/
-    /*init?(gArray: UnsafeMutablePointer<GArrowArray>?) {*/
-        /*// TODO: Get the address of the contiguous GArrowArray*/
-        /*guard let ptrVal =*/
-            /*UInt(contiguousNumpyArray.__array_interface__["data"].tuple2.0) else {*/
-                /*return nil*/
-        /*}*/
-        /*guard let ptr = UnsafePointer<Element>(bitPattern: ptrVal) else {*/
-            /*fatalError("gArrowArray data pointer was nil")*/
-        /*}*/
-        /*// This code avoids constructing and initialize from `UnsafeBufferPointer`*/
-        /*// because that uses the `init<S : Sequence>(_ elements: S)` initializer,*/
-        /*// which performs unnecessary copying.*/
-        /*let dummyPointer = UnsafeMutablePointer<Element>.allocate(capacity: 1)*/
-        /*let scalarCount = garrow_array_get_length(gArray)*/
-        /*self.init(repeating: dummyPointer.move(), count: scalarCount)*/
-        /*dummyPointer.deallocate()*/
-        /*withUnsafeMutableBufferPointer { buffPtr in*/
-            /*buffPtr.baseAddress!.assign(from: ptr, count: scalarCount)*/
-        /*}*/
-    /*}*/
-/*}*/
+// From https://github.com/pvieito/PythonKit/blob/671302aebaa8b9bef4daccbf7fc07c014d1fd357/PythonKit/NumpyConversion.swift
+extension Array: ConvertibleFromGArrowArray
+where Element: ArrowArrayElement {
+    init?(gArray: UnsafeMutablePointer<GArrowArray>?) {
+        let primitiveArray: UnsafeMutablePointer<GArrowPrimitiveArray>? = GARROW_PRIMITIVE_ARRAY(gArray)
+        let buffer: UnsafeMutablePointer<GArrowBuffer>? = garrow_primitive_array_get_data_buffer(primitiveArray)
+        let ptrVal: OpaquePointer? = garrow_buffer_get_data(buffer) // GBytes
+        var gSize = g_bytes_get_size(ptrVal)
+        guard let bufferPointer: UnsafeRawPointer = g_bytes_get_data(ptrVal, &gSize) else {
+            return nil
+        }
+        let ptr: UnsafePointer<Element> = bufferPointer.assumingMemoryBound(to: Element.self)
+
+        // This code avoids constructing and initialize from `UnsafeBufferPointer`
+        // because that uses the `init<S : Sequence>(_ elements: S)` initializer,
+        // which performs unnecessary copying.
+        let dummyPointer = UnsafeMutablePointer<Element>.allocate(capacity: 1)
+        let scalarCount = Int(garrow_array_get_length(gArray))
+        self.init(repeating: dummyPointer.move(), count: scalarCount)
+        dummyPointer.deallocate()
+        withUnsafeMutableBufferPointer { buffPtr in
+            buffPtr.baseAddress!.assign(from: ptr, count: scalarCount)
+        }
+    }
+}
 
 extension Float: ArrowArrayElement {
     static func toGArrowArray(array: [Float]) throws -> UnsafeMutablePointer<GArrowArray>? {
