@@ -1,5 +1,6 @@
 import Foundation
 
+#if canImport(Darwin)
 enum MachError: Error {
     case FailedToGetMemory(String)
 }
@@ -30,3 +31,10 @@ func getMemoryUsageString() -> String? {
         return nil
     }
 }
+
+#else
+func getMemoryUsageString() -> String? {
+    // TODO: Implement this for Linux
+    return ""
+}
+#endif

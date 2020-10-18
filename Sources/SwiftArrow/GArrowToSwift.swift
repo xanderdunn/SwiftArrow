@@ -34,9 +34,8 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[B
                     return []
                 }
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_string_data_type_new())) == 1 {
-                /*let swiftArray: [String] = gArrowTableColumnToSwift(gArray: gArray)*/
-                /*return swiftArray*/
-                return []
+                let swiftArray: [String] = gArrowTableColumnToSwift(gArray: gArray)
+                return swiftArray
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_float_data_type_new())) == 1 {
                 if let swiftArray: [Float] = Array(gArray: gArray) {
                     return swiftArray
@@ -50,13 +49,11 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[B
                     return []
                 }
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_boolean_data_type_new())) == 1 {
-                /*let swiftArray: [Bool] = gArrowTableColumnToSwift(gArray: gArray)*/
-                /*return swiftArray*/
-                return []
+                let swiftArray: [Bool] = gArrowTableColumnToSwift(gArray: gArray)
+                return swiftArray
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(timestampDataType)) == 1 {
-                /*let swiftArray: [Date] = gArrowTableColumnToSwift(gArray: gArray)*/
-                /*return swiftArray*/
-                return []
+                let swiftArray: [Date] = gArrowTableColumnToSwift(gArray: gArray)
+                return swiftArray
             } else {
                 var errorString = "Got GArrowArray with unsupported data type in call gArrowTableToSwift"
                 if let typeString = garrow_data_type_to_string(dataType) {

@@ -258,6 +258,32 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
+    /*func testLargeColumns() {*/
+        /*let numRows = 50_000_000*/
+        /*print(Date(), getMemoryUsageString()!, "Creating random large column values...")*/
+        /*let doublesColumn: [Double] = (0..<numRows).map { Double.random(in: 0.0...Double($0)) }*/
+        /*let intsColumn: [Int] = (0..<numRows).map { Int.random(in: 0...$0) }*/
+        /*let largeColumns: [[BaseArrowArrayElement]] = [doublesColumn, intsColumn]*/
+        /*let columnNames: [String] = ["doubles", "ints"]*/
+        /*let filePath: String = "./data/swiftArrowLargeColumnsTest.feather"*/
+        /*print(Date(), getMemoryUsageString()!, "Saving large columns to .feather...")*/
+        /*do {*/
+            /*try saveColumnsToFeather(columns: largeColumns, columnNames: columnNames, outputPath: filePath)*/
+            /*print(Date(), getMemoryUsageString()!, "Done saving to .feather.")*/
+        /*} catch {*/
+            /*print(error)*/
+        /*}*/
+        /*do {*/
+            /*print(Date(), getMemoryUsageString()!, "Reading from .feather...")*/
+            /*let (decodedColumns, decodedColumnNames) = try readColumnsFromFeather(filePath: filePath)*/
+            /*print(Date(), getMemoryUsageString()!, "Done reading from .feather.")*/
+            /*XCTAssertEqual(decodedColumnNames, columnNames)*/
+            /*print("num rows read:", decodedColumns[0].count)*/
+        /*} catch {*/
+            /*print(error)*/
+        /*}*/
+    /*}*/
+
     static var allTests = [
         ("testCreateAndSaveDoublesToFile", testCreateAndSaveDoublesToFile),
         ("testLoadDoublesFromFile", testLoadDoublesFromFile),
@@ -275,6 +301,7 @@ final class ArrowLibTests: XCTestCase {
         ("testDateComparisons", testDateComparisons),
         ("testSwiftSingleTypeMatrixToFile", testSwiftSingleTypeMatrixToFile),
         ("testSwiftMultipleTypesMatrixToFile", testSwiftMultipleTypesMatrixToFile),
-        ("testMultiChunkArrays", testMultiChunkArrays)
+        ("testMultiChunkArrays", testMultiChunkArrays),
+        /*("testLargeColumns", testLargeColumns)*/
     ]
 }
