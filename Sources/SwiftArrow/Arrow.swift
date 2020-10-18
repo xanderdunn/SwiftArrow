@@ -90,7 +90,7 @@ func saveGTableToFeather(_ gTable: UnsafeMutablePointer<GArrowTable>, outputPath
 Load table from file: GArrowFeatherFileReader
 */
 func loadGTableFromFeather(filePath: String) throws -> UnsafeMutablePointer<GArrowTable>? {
-    print(Date(), "Loading \(filePath) to GTable...")
+    print(Date(), getMemoryUsageString()!, "Loading \(filePath) to GTable...")
     var error: UnsafeMutablePointer<GError>?
     let path = filePath.cString(using: .utf8)
     let inputStream = garrow_memory_mapped_input_stream_new(path, &error)
@@ -116,7 +116,7 @@ func loadGTableFromFeather(filePath: String) throws -> UnsafeMutablePointer<GArr
     }
     g_object_unref(reader)
     g_object_unref(inputStream)
-    print(Date(), "Done loading \(filePath) to GTable.")
+    print(Date(), getMemoryUsageString()!, "Done loading \(filePath) to GTable.")
     return table
 }
 
