@@ -16,7 +16,7 @@ enum ArrowColumnDataType {
   case date
 }
 
-struct ArrowColumnMetadata {
+public struct ArrowColumnMetadata {
     let name: String
     let dataType: ArrowColumnDataType
     let index: Int // The index of this column in the array of columns of this type
@@ -33,14 +33,14 @@ public struct ArrowColumns {
     var stringColumns: [[String]] = []
     var boolColumns: [[Bool]] = []
     var dateColumns: [[Date]] = []
-    var metadata: [ArrowColumnMetadata] = []
-    var columns: [String] {
+    public var metadata: [ArrowColumnMetadata] = []
+    public var columns: [String] {
         return metadata.map { $0.name }
     }
-    var rowCount: UInt64 = 0
-    var columnCount: UInt64 = 0
+    public var rowCount: UInt64 = 0
+    public var columnCount: UInt64 = 0
 
-    subscript(index: Int) -> [Any] {
+    public subscript(index: Int) -> [Any] {
         let columnMetadata = self.metadata[index]
         switch columnMetadata.dataType {
         case .int:
