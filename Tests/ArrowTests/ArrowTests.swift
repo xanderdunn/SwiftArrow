@@ -279,32 +279,37 @@ final class ArrowLibTests: XCTestCase {
         let numRows = 5_000_000
         /*XCTAssertTrue(getMemoryUsage()! < 40_000_000)*/
         let initialMemoryUsage = getMemoryUsage()!
-        let memoryCushion: UInt64 = 5_000_000
+        let memoryCushion: UInt64 = 10_000_000
         let dataMemorySize: UInt64 = UInt64(numRows) * 2 * 8 // two columns, 8 bytes per column
         let doublesColumn: [Double] = (0..<numRows).map { Double.random(in: 0.0...Double($0)) }
         let intsColumn: [Int64] = (0..<numRows).map { Int64.random(in: Int64(0)...Int64($0)) }
         XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
+        XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
 
         var largeColumns: ArrowColumns = ArrowColumns()
         let columnNames: [String] = ["doubles", "ints"]
         largeColumns.addDoubleColumn(column: doublesColumn, columnName: columnNames[0])
         largeColumns.addInt64Column(column: intsColumn, columnName: columnNames[1])
         XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
+        XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
 
         let filePath: String = "./data/swiftArrowLargeColumnsTest.feather"
         do {
             try largeColumns.saveColumnsToFeather(outputPath: filePath)
             // Saving to feather makes a single copy, so 2 * data size
             XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + 2 * dataMemorySize + memoryCushion)
+            XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + 2 * dataMemorySize - memoryCushion)
         } catch {
             print(error)
         }
         do {
             XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + 2 * dataMemorySize + memoryCushion)
+            XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + 2 * dataMemorySize - memoryCushion)
             let columns = try ArrowColumns.readColumnsFromFeather(filePath: filePath)
             // TODO: The goal is to get this 5x down to 4x
             // https://github.com/xanderdunn/SwiftArrow/issues/7
             XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + 5 * dataMemorySize + memoryCushion)
+            XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + 5 * dataMemorySize - memoryCushion)
             XCTAssertEqual(columns.columns, columnNames)
             XCTAssertEqual(columns[0].count, numRows)
         } catch {
@@ -323,14 +328,17 @@ final class ArrowLibTests: XCTestCase {
             XCTAssertEqual(UInt64(intsColumn.count), numRows)
             XCTAssertEqual(UInt64(doublesColumn.count), numRows)
             XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
+            XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
             var largeColumns: ArrowColumns = ArrowColumns()
             largeColumns.addInt64Column(column: intsColumn, columnName: "test_ints")
             largeColumns.addDoubleColumn(column: doublesColumn, columnName: "test_doubles")
             XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
+            XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
             return largeColumns
         }()
         XCTAssertEqual(swiftTable.rowCount, numRows)
         XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
+        XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
     }
 
     static var allTests = [

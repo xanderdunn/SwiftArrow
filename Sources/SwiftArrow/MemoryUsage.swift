@@ -1,4 +1,5 @@
 import Foundation
+import CMemoryHelper
 
 #if canImport(Darwin)
 enum MachError: Error {
@@ -24,6 +25,17 @@ func getMemoryUsage() -> UInt64? {
     }
 }
 
+#else // Linux
+func getMemoryUsage() -> UInt64? {
+    let memoryUsage = getProcessMemoryUsage()
+    if memoryUsage > 0 {
+        return memoryUsage
+    } else {
+        return nil
+    }
+}
+#endif
+
 func getMemoryUsageString() -> String? {
     if let memoryUsage: UInt64 = getMemoryUsage() {
         return ByteCountFormatter().string(fromByteCount: Int64(memoryUsage))
@@ -31,17 +43,6 @@ func getMemoryUsageString() -> String? {
         return nil
     }
 }
-
-#else
-func getMemoryUsageString() -> String? {
-    // TODO: Implement this for Linux
-    return ""
-}
-
-func getMemoryUsage() -> UInt64? {
-    return UInt64(0)
-}
-#endif
 
 func printMemoryUsage() {
     print(getMemoryUsageString()!)

@@ -7,6 +7,7 @@ let package = Package(
        .macOS(.v10_14)
     ],
     products: [
+        .library(name: "CMemoryHelper", targets: ["CMemoryHelper"]),
         .library(name: "SwiftArrow", targets: ["SwiftArrow"])
     ],
     dependencies: [
@@ -15,12 +16,15 @@ let package = Package(
                  from: "0.5.0")
     ],
     targets: [
+        .target(name: "CMemoryHelper", path: "./Sources/CMemoryHelper"),
         .systemLibrary(name: "CArrow", pkgConfig: "arrow-glib",
             providers: [
                 .brew(["apache-arrow-glib"]),
                 .apt(["libarrow-glib-dev"])
             ]),
-        .target(name: "SwiftArrow", dependencies: ["CArrow", "SwiftyTextTable"]),
+        .target(name: "SwiftArrow", dependencies: ["CArrow",
+                                                   "SwiftyTextTable",
+                                                   "CMemoryHelper"]),
         .testTarget(name: "ArrowTests", dependencies: ["SwiftArrow"])
     ]
 )
