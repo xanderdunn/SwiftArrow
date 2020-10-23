@@ -31,3 +31,16 @@ public func printTable(rows: [[CustomStringConvertible]], columnNames: [String])
 public func printTable(columns: [[CustomStringConvertible]], columnNames: [String]) {
     printTable(rows: columns.transposed(), columnNames: columnNames)
 }
+
+// Pretty printing the table
+/*extension ArrowColumns {*/
+    /*public func printTable() {*/
+        /*let textTableColumns: [TextTableColumn] = self.columns.map { TextTableColumn(header: $0) }*/
+        /*var textTable = TextTable(columns: textTableColumns)*/
+        /*for rowVector in rows {*/
+            /*textTable.addRow(values: rowVector)*/
+        /*}*/
+        /*let tableString = textTable.render()*/
+        /*print(tableString)*/
+    /*}*/
+/*}*/

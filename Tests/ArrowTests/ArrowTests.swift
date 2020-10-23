@@ -28,13 +28,16 @@ final class ArrowLibTests: XCTestCase {
             if let table = table {
                 print("Columns of created table:")
                 let deserializedColumnsNames = try gArrowTableGetSchema(table)
-                let columns = try gArrowTableToSwift(gTable: table)
-                printTable(columns: columns, columnNames: deserializedColumnsNames)
+                let columns = try ArrowColumns.gArrowTableToSwift(gTable: table)
+                XCTAssertEqual(deserializedColumnsNames, columnNames)
+                XCTAssertEqual(columns[0] as! [T], values1)
+                XCTAssertEqual(columns[1] as! [T], values2)
+                /*printTable(columns: columns, columnNames: deserializedColumnsNames)*/
             }
             // Save Table to feather file
             let outputPath = "./test\(T.self).feather"
             if let table = table {
-                let columns = try gArrowTableToSwift(gTable: table)
+                let columns = try ArrowColumns.gArrowTableToSwift(gTable: table)
                 let column0 = columns[0]
                 if let column0 = column0 as? [Date], let values1 = values1 as? [Date] {
                     XCTAssertTrue(Date.datesEqual(array1: values1, array2: column0))
@@ -62,7 +65,7 @@ final class ArrowLibTests: XCTestCase {
         let filePath = "./test\(T.self).feather"
         let gTable = try loadGTableFromFeather(filePath: filePath)
         if let gTable = gTable {
-            let columns = try gArrowTableToSwift(gTable: gTable)
+            let columns = try ArrowColumns.gArrowTableToSwift(gTable: gTable)
             let deserializedColumnsNames = try gArrowTableGetSchema(gTable)
             XCTAssertEqual(deserializedColumnsNames, columnNames)
             let column0 = columns[0]
@@ -83,11 +86,11 @@ final class ArrowLibTests: XCTestCase {
             } else {
                 assertionFailure()
             }
-            printTable(columns: columns, columnNames: deserializedColumnsNames)
+            /*printTable(columns: columns, columnNames: deserializedColumnsNames)*/
         }
     }
 
-    // DOUBLESs
+    // DOUBLEs
     let doubleValues1: [Double] = [1.0, 2.22, 45.66, 916661.17171]
     let doubleValues2: [Double] = [23.7777777, 233.3, 2323.3, 23233.3]
     let doubleColumnNames = ["doublesColumn1", "doublesColumn2"]
@@ -179,9 +182,9 @@ final class ArrowLibTests: XCTestCase {
         try columns.saveColumnsToFeather(outputPath: "tableSingle.feather")
         /*let rows = [row1, row2]*/
         /*if let rows = rows as? [[BaseArrowArrayElement]] {*/
-            /*try saveRowsToFeather(rows: rows, columnNames: columnNames, outputPath: "tableSingle.feather")*/
+            /*[>try saveRowsToFeather(rows: rows, columnNames: columnNames, outputPath: "tableSingle.feather")<]*/
         /*} else {*/
-            /*fatalError()*/
+            /*[>fatalError()*/
         /*}*/
     }
 
@@ -203,9 +206,9 @@ final class ArrowLibTests: XCTestCase {
         arrowColumns.addBoolColumn(column: columns[3] as! [Bool], columnName: columnNames[3])
         try arrowColumns.saveColumnsToFeather(outputPath: filePath)
 
-        let (columnsDecoded, columnNamesDecoded) = try readColumnsFromFeather(filePath: filePath)
+        let columnsDecoded = try ArrowColumns.readColumnsFromFeather(filePath: filePath)
         XCTAssertEqual(columnsDecoded[1][2] as? Double, 879.5)
-        XCTAssertEqual(columnNamesDecoded, columnNames)
+        XCTAssertEqual(columnsDecoded.columns, columnNames)
     }
 
     func testDateNanosecondsConversion() throws {
@@ -247,10 +250,10 @@ final class ArrowLibTests: XCTestCase {
         do {
             let filePath = "./longColumnTable.feather"
             try longColumnTable.saveColumnsToFeather(outputPath: filePath)
-            let (decodedColumns, decodedColumnNames) = try readColumnsFromFeather(filePath: filePath)
+            let decodedColumns = try ArrowColumns.readColumnsFromFeather(filePath: filePath)
             XCTAssertEqual(decodedColumns[0].count, numRows)
             XCTAssertEqual(decodedColumns[1].count, numRows)
-            XCTAssertEqual(decodedColumnNames, columnNames)
+            XCTAssertEqual(decodedColumns.columns, columnNames)
             guard let doubleColumn = decodedColumns[0] as? [Double] else {
                 assertionFailure("Couldn't decode column as Doubles")
                 return
@@ -266,36 +269,36 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
-    /*func testLargeColumns() {*/
-        /*let numRows = 5_000_000*/
-        /*print(Date(), getMemoryUsageString()!, "Creating random large column values...")*/
-        /*[>XCTAssertTrue(getMemoryUsage()! < 40_000_000)<]*/
-        /*let doublesColumn: [Double] = (0..<numRows).map { Double.random(in: 0.0...Double($0)) }*/
-        /*let intsColumn: [Int64] = (0..<numRows).map { Int64.random(in: Int64(0)...Int64($0)) }*/
+    func testLargeColumns() {
+        let numRows = 5_000_000
+        print(Date(), getMemoryUsageString()!, "Creating random large column values...")
+        /*XCTAssertTrue(getMemoryUsage()! < 40_000_000)*/
+        let doublesColumn: [Double] = (0..<numRows).map { Double.random(in: 0.0...Double($0)) }
+        let intsColumn: [Int64] = (0..<numRows).map { Int64.random(in: Int64(0)...Int64($0)) }
 
-        /*var largeColumns: ArrowColumns = ArrowColumns()*/
-        /*let columnNames: [String] = ["doubles", "ints"]*/
-        /*largeColumns.addDoubleColumn(column: doublesColumn, columnName: columnNames[0])*/
-        /*largeColumns.addInt64Column(column: intsColumn, columnName: columnNames[1])*/
+        var largeColumns: ArrowColumns = ArrowColumns()
+        let columnNames: [String] = ["doubles", "ints"]
+        largeColumns.addDoubleColumn(column: doublesColumn, columnName: columnNames[0])
+        largeColumns.addInt64Column(column: intsColumn, columnName: columnNames[1])
 
-        /*let filePath: String = "./data/swiftArrowLargeColumnsTest.feather"*/
-        /*print(Date(), getMemoryUsageString()!, "Saving large columns to .feather...")*/
-        /*do {*/
-            /*try largeColumns.saveColumnsToFeather(outputPath: filePath)*/
-            /*print(Date(), getMemoryUsageString()!, "Done saving to .feather.")*/
-        /*} catch {*/
-            /*print(error)*/
-        /*}*/
-        /*do {*/
-            /*print(Date(), getMemoryUsageString()!, "Reading from .feather...")*/
-            /*let (decodedColumns, decodedColumnNames) = try readColumnsFromFeather(filePath: filePath)*/
-            /*print(Date(), getMemoryUsageString()!, "Done reading from .feather.")*/
-            /*XCTAssertEqual(decodedColumnNames, columnNames)*/
-            /*print("num rows read:", decodedColumns[0].count)*/
-        /*} catch {*/
-            /*print(error)*/
-        /*}*/
-    /*}*/
+        let filePath: String = "./data/swiftArrowLargeColumnsTest.feather"
+        print(Date(), getMemoryUsageString()!, "Saving large columns to .feather...")
+        do {
+            try largeColumns.saveColumnsToFeather(outputPath: filePath)
+            print(Date(), getMemoryUsageString()!, "Done saving to .feather.")
+        } catch {
+            print(error)
+        }
+        do {
+            print(Date(), getMemoryUsageString()!, "Reading from .feather...")
+            let columns = try ArrowColumns.readColumnsFromFeather(filePath: filePath)
+            print(Date(), getMemoryUsageString()!, "Done reading from .feather.")
+            XCTAssertEqual(columns.columns, columnNames)
+            XCTAssertEqual(columns[0].count, numRows)
+        } catch {
+            print(error)
+        }
+    }
 
     func testBasicMemoryUsage() {
         let swiftTable: ArrowColumns = { () -> ArrowColumns in
@@ -337,7 +340,7 @@ final class ArrowLibTests: XCTestCase {
         ("testSwiftSingleTypeMatrixToFile", testSwiftSingleTypeMatrixToFile),
         ("testSwiftMultipleTypesMatrixToFile", testSwiftMultipleTypesMatrixToFile),
         ("testMultiChunkArrays", testMultiChunkArrays),
-        /*("testLargeColumns", testLargeColumns)*/
-        ("testBasicMemoryUsage", testBasicMemoryUsage)
+        ("testLargeColumns", testLargeColumns),
+        ("testBasicMemoryUsage", testBasicMemoryUsage),
     ]
 }

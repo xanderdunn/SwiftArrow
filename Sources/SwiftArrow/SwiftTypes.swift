@@ -34,7 +34,49 @@ public struct ArrowColumns {
     var boolColumns: [[Bool]] = []
     var dateColumns: [[Date]] = []
     var metadata: [ArrowColumnMetadata] = []
+    var columns: [String] {
+        return metadata.map { $0.name }
+    }
     var rowCount: UInt64 = 0
+    var columnCount: UInt64 = 0
+
+    subscript(index: Int) -> [Any] {
+        let columnMetadata = self.metadata[index]
+        switch columnMetadata.dataType {
+        case .int:
+            return self.intColumns[columnMetadata.index]
+        case .int64:
+            return self.int64Columns[columnMetadata.index]
+        case .double:
+            return self.doubleColumns[columnMetadata.index]
+        case .float:
+            return self.floatColumns[columnMetadata.index]
+        case .string:
+            return self.stringColumns[columnMetadata.index]
+        case .bool:
+            return self.boolColumns[columnMetadata.index]
+        case .date:
+            return self.dateColumns[columnMetadata.index]
+        }
+    }
+
+    mutating func addFloatColumn(column: [Float], columnName: String) {
+        printMemoryUsage()
+        if self.rowCount > 0 {
+            assert(column.count == self.rowCount)
+            printMemoryUsage()
+        } else {
+            self.rowCount = UInt64(column.count)
+            printMemoryUsage()
+        }
+        self.columnCount += 1
+        self.floatColumns.append(column)
+        printMemoryUsage()
+        self.metadata.append(ArrowColumnMetadata(name: columnName,
+                                                 dataType: ArrowColumnDataType.float,
+                                                 index: self.floatColumns.count - 1))
+        printMemoryUsage()
+    }
 
     mutating func addBoolColumn(column: [Bool], columnName: String) {
         printMemoryUsage()
@@ -45,6 +87,7 @@ public struct ArrowColumns {
             self.rowCount = UInt64(column.count)
             printMemoryUsage()
         }
+        self.columnCount += 1
         self.boolColumns.append(column)
         printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
@@ -62,6 +105,7 @@ public struct ArrowColumns {
             self.rowCount = UInt64(column.count)
             printMemoryUsage()
         }
+        self.columnCount += 1
         self.dateColumns.append(column)
         printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
@@ -79,6 +123,7 @@ public struct ArrowColumns {
             self.rowCount = UInt64(column.count)
             printMemoryUsage()
         }
+        self.columnCount += 1
         self.stringColumns.append(column)
         printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
@@ -96,6 +141,7 @@ public struct ArrowColumns {
             self.rowCount = UInt64(column.count)
             printMemoryUsage()
         }
+        self.columnCount += 1
         self.intColumns.append(column)
         printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
@@ -113,6 +159,7 @@ public struct ArrowColumns {
             self.rowCount = UInt64(column.count)
             printMemoryUsage()
         }
+        self.columnCount += 1
         self.int64Columns.append(column)
         printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
@@ -130,12 +177,27 @@ public struct ArrowColumns {
             self.rowCount = UInt64(column.count)
             printMemoryUsage()
         }
+        self.columnCount += 1
         self.doubleColumns.append(column)
         printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.double,
                                                  index: self.doubleColumns.count - 1))
         printMemoryUsage()
+    }
+
+    static func readColumnsFromFeather(filePath: String) throws -> ArrowColumns {
+        print("\(#function):\(#line)", getMemoryUsageString()!)
+        let gTable = try loadGTableFromFeather(filePath: filePath)
+        print("\(#function):\(#line)", getMemoryUsageString()!)
+        if let gTable = gTable {
+            print("\(#function):\(#line)", getMemoryUsageString()!)
+            let columns = try ArrowColumns.gArrowTableToSwift(gTable: gTable)
+            print("\(#function):\(#line)", getMemoryUsageString()!)
+            return columns
+        } else {
+            throw ArrowError.failedRead("Failed to read .feather file from \(filePath)")
+        }
     }
 
     func saveColumnsToFeather(outputPath: String) throws {
@@ -179,10 +241,7 @@ public struct ArrowColumns {
     }
 }
 
-public protocol BaseArrowArrayElement: CustomStringConvertible {
-}
-
-protocol ArrowArrayElement: Equatable, BaseArrowArrayElement {
+protocol ArrowArrayElement: Equatable {
     static func toGArrowArray(array: [Self]) throws -> UnsafeMutablePointer<GArrowArray>?
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Self]
 }
@@ -307,6 +366,7 @@ protocol ConvertibleFromGArrowArray {
 extension Array: ConvertibleFromGArrowArray
 where Element: ArrowArrayElement {
     init?(gArray: UnsafeMutablePointer<GArrowArray>?) {
+        print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
         let primitiveArray: UnsafeMutablePointer<GArrowPrimitiveArray>? = GARROW_PRIMITIVE_ARRAY(gArray)
         let buffer: UnsafeMutablePointer<GArrowBuffer>? = garrow_primitive_array_get_data_buffer(primitiveArray)
         let ptrVal: OpaquePointer? = garrow_buffer_get_data(buffer) // GBytes
@@ -315,17 +375,22 @@ where Element: ArrowArrayElement {
             return nil
         }
         let ptr: UnsafePointer<Element> = bufferPointer.assumingMemoryBound(to: Element.self)
+        print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
 
         // This code avoids constructing and initialize from `UnsafeBufferPointer`
         // because that uses the `init<S : Sequence>(_ elements: S)` initializer,
         // which performs unnecessary copying.
         let dummyPointer = UnsafeMutablePointer<Element>.allocate(capacity: 1)
         let scalarCount = Int(garrow_array_get_length(gArray))
+        print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
+        // TODO: This is allocating memory equal to the size of the dataset
         self.init(repeating: dummyPointer.move(), count: scalarCount)
+        print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
         dummyPointer.deallocate()
         withUnsafeMutableBufferPointer { buffPtr in
             buffPtr.baseAddress!.assign(from: ptr, count: scalarCount)
         }
+        print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
     }
 }
 
