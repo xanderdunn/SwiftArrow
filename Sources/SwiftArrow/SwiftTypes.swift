@@ -68,6 +68,7 @@ public struct ArrowColumns {
         }
         self.columnCount += 1
         self.floatColumns.append(column)
+        print("Added float column \(columnName) with count \(column.count)")
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.float,
                                                  index: self.floatColumns.count - 1))
@@ -81,6 +82,7 @@ public struct ArrowColumns {
         }
         self.columnCount += 1
         self.boolColumns.append(column)
+        print("Added bool column \(columnName) with count \(column.count)")
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.bool,
                                                  index: self.boolColumns.count - 1))
@@ -94,6 +96,7 @@ public struct ArrowColumns {
         }
         self.columnCount += 1
         self.dateColumns.append(column)
+        print("Added date column \(columnName) with count \(column.count)")
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.date,
                                                  index: self.dateColumns.count - 1))
@@ -107,6 +110,7 @@ public struct ArrowColumns {
         }
         self.columnCount += 1
         self.stringColumns.append(column)
+        print("Added string column \(columnName) with count \(column.count)")
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.string,
                                                  index: self.stringColumns.count - 1))
@@ -120,6 +124,7 @@ public struct ArrowColumns {
         }
         self.columnCount += 1
         self.intColumns.append(column)
+        print("Added int column \(columnName) with count \(column.count)")
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.int,
                                                  index: self.intColumns.count - 1))
@@ -133,6 +138,7 @@ public struct ArrowColumns {
         }
         self.columnCount += 1
         self.int64Columns.append(column)
+        print("Added int64 column \(columnName) with count \(column.count)")
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.int64,
                                                  index: self.int64Columns.count - 1))
@@ -146,6 +152,7 @@ public struct ArrowColumns {
         }
         self.columnCount += 1
         self.doubleColumns.append(column)
+        print("Added double column \(columnName) with count \(column.count)")
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.double,
                                                  index: self.doubleColumns.count - 1))
