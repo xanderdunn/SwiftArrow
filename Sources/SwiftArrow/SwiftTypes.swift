@@ -380,15 +380,14 @@ where Element: ArrowArrayElement {
         // This code avoids constructing and initialize from `UnsafeBufferPointer`
         // because that uses the `init<S : Sequence>(_ elements: S)` initializer,
         // which performs unnecessary copying.
-        let dummyPointer = UnsafeMutablePointer<Element>.allocate(capacity: 1)
+        /*let dummyPointer = UnsafeMutablePointer<Element>.allocate(capacity: 1)*/
         let scalarCount = Int(garrow_array_get_length(gArray))
         print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
         // TODO: This is allocating memory equal to the size of the dataset
-        self.init(repeating: dummyPointer.move(), count: scalarCount)
         print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
-        dummyPointer.deallocate()
-        withUnsafeMutableBufferPointer { buffPtr in
+        self.init(unsafeUninitializedCapacity: scalarCount) { buffPtr, initializedCount in
             buffPtr.baseAddress!.assign(from: ptr, count: scalarCount)
+            initializedCount = scalarCount
         }
         print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
     }
