@@ -61,129 +61,94 @@ public struct ArrowColumns {
     }
 
     mutating func addFloatColumn(column: [Float], columnName: String) {
-        printMemoryUsage()
         if self.rowCount > 0 {
             assert(column.count == self.rowCount)
-            printMemoryUsage()
         } else {
             self.rowCount = UInt64(column.count)
-            printMemoryUsage()
         }
         self.columnCount += 1
         self.floatColumns.append(column)
-        printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.float,
                                                  index: self.floatColumns.count - 1))
-        printMemoryUsage()
     }
 
     mutating func addBoolColumn(column: [Bool], columnName: String) {
-        printMemoryUsage()
         if self.rowCount > 0 {
             assert(column.count == self.rowCount)
-            printMemoryUsage()
         } else {
             self.rowCount = UInt64(column.count)
-            printMemoryUsage()
         }
         self.columnCount += 1
         self.boolColumns.append(column)
-        printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.bool,
                                                  index: self.boolColumns.count - 1))
-        printMemoryUsage()
     }
 
     mutating func addDateColumn(column: [Date], columnName: String) {
-        printMemoryUsage()
         if self.rowCount > 0 {
             assert(column.count == self.rowCount)
-            printMemoryUsage()
         } else {
             self.rowCount = UInt64(column.count)
-            printMemoryUsage()
         }
         self.columnCount += 1
         self.dateColumns.append(column)
-        printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.date,
                                                  index: self.dateColumns.count - 1))
-        printMemoryUsage()
     }
 
     mutating func addStringColumn(column: [String], columnName: String) {
-        printMemoryUsage()
         if self.rowCount > 0 {
             assert(column.count == self.rowCount)
-            printMemoryUsage()
         } else {
             self.rowCount = UInt64(column.count)
-            printMemoryUsage()
         }
         self.columnCount += 1
         self.stringColumns.append(column)
-        printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.string,
                                                  index: self.stringColumns.count - 1))
-        printMemoryUsage()
     }
 
     mutating func addIntColumn(column: [Int], columnName: String) {
-        printMemoryUsage()
         if self.rowCount > 0 {
             assert(column.count == self.rowCount)
-            printMemoryUsage()
         } else {
             self.rowCount = UInt64(column.count)
-            printMemoryUsage()
         }
         self.columnCount += 1
         self.intColumns.append(column)
-        printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.int,
                                                  index: self.intColumns.count - 1))
-        printMemoryUsage()
     }
 
     mutating func addInt64Column(column: [Int64], columnName: String) {
-        printMemoryUsage()
         if self.rowCount > 0 {
             assert(column.count == self.rowCount)
-            printMemoryUsage()
         } else {
             self.rowCount = UInt64(column.count)
-            printMemoryUsage()
         }
         self.columnCount += 1
         self.int64Columns.append(column)
-        printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.int64,
                                                  index: self.int64Columns.count - 1))
-        printMemoryUsage()
     }
 
     mutating func addDoubleColumn(column: [Double], columnName: String) {
-        printMemoryUsage()
         if self.rowCount > 0 {
             assert(column.count == self.rowCount)
-            printMemoryUsage()
         } else {
             self.rowCount = UInt64(column.count)
-            printMemoryUsage()
         }
         self.columnCount += 1
         self.doubleColumns.append(column)
-        printMemoryUsage()
         self.metadata.append(ArrowColumnMetadata(name: columnName,
                                                  dataType: ArrowColumnDataType.double,
                                                  index: self.doubleColumns.count - 1))
-        printMemoryUsage()
     }
 
     static func readColumnsFromFeather(filePath: String) throws -> ArrowColumns {
@@ -201,7 +166,6 @@ public struct ArrowColumns {
     }
 
     func saveColumnsToFeather(outputPath: String) throws {
-        printMemoryUsage()
         var gArrays: [UnsafeMutablePointer<GArrowArray>?] = []
         let columnNames = self.metadata.map { $0.name }
         for metadata in self.metadata {
@@ -211,13 +175,9 @@ public struct ArrowColumns {
                 gArrays.append(try Int.toGArrowArray(array: self.intColumns[metadata.index]))
                 print("appended an int column", getMemoryUsageString()!)
             case .int64:
-                printMemoryUsage()
                 gArrays.append(try Int64.toGArrowArray(array: self.int64Columns[metadata.index]))
-                printMemoryUsage()
             case .double:
-                printMemoryUsage()
                 gArrays.append(try Double.toGArrowArray(array: self.doubleColumns[metadata.index]))
-                printMemoryUsage()
             case .float:
                 gArrays.append(try Float.toGArrowArray(array: self.floatColumns[metadata.index]))
             case .string:
@@ -228,13 +188,9 @@ public struct ArrowColumns {
                 gArrays.append(try Date.toGArrowArray(array: self.dateColumns[metadata.index]))
             }
         }
-        printMemoryUsage()
         let gTable = try gArraysToGTable(arrays: gArrays, columns: columnNames)
-        printMemoryUsage()
         if let gTable = gTable {
-            printMemoryUsage()
             try saveGTableToFeather(gTable, outputPath: outputPath)
-            printMemoryUsage()
         } else {
             throw ArrowError.invalidTableCreation("Failed to create table")
         }
