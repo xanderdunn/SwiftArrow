@@ -37,6 +37,10 @@ func getMemoryUsageString() -> String? {
     // TODO: Implement this for Linux
     return ""
 }
+
+func getMemoryUsage() -> UInt64? {
+    return UInt64(0)
+}
 #endif
 
 func printMemoryUsage() {
