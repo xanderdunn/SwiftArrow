@@ -32,13 +32,13 @@ func getMemoryUsageString() -> String? {
     }
 }
 
-func printMemoryUsage() {
-    print(getMemoryUsageString()!)
-}
-
 #else
 func getMemoryUsageString() -> String? {
     // TODO: Implement this for Linux
     return ""
 }
 #endif
+
+func printMemoryUsage() {
+    print(getMemoryUsageString()!)
+}
