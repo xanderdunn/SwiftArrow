@@ -62,7 +62,7 @@ public struct ArrowColumns {
 
     mutating func addFloatColumn(column: [Float], columnName: String) {
         if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "Expected equal rows but found \(column.count) != \(self.rowCount)")
+            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
         } else {
             self.rowCount = UInt64(column.count)
         }
@@ -75,7 +75,7 @@ public struct ArrowColumns {
 
     mutating func addBoolColumn(column: [Bool], columnName: String) {
         if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "Expected equal rows but found \(column.count) != \(self.rowCount)")
+            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
         } else {
             self.rowCount = UInt64(column.count)
         }
@@ -88,7 +88,7 @@ public struct ArrowColumns {
 
     mutating func addDateColumn(column: [Date], columnName: String) {
         if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "Expected equal rows but found \(column.count) != \(self.rowCount)")
+            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
         } else {
             self.rowCount = UInt64(column.count)
         }
@@ -101,7 +101,7 @@ public struct ArrowColumns {
 
     mutating func addStringColumn(column: [String], columnName: String) {
         if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "Expected equal rows but found \(column.count) != \(self.rowCount)")
+            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
         } else {
             self.rowCount = UInt64(column.count)
         }
@@ -114,7 +114,7 @@ public struct ArrowColumns {
 
     mutating func addIntColumn(column: [Int], columnName: String) {
         if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "Expected equal rows but found \(column.count) != \(self.rowCount)")
+            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
         } else {
             self.rowCount = UInt64(column.count)
         }
@@ -127,7 +127,7 @@ public struct ArrowColumns {
 
     mutating func addInt64Column(column: [Int64], columnName: String) {
         if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "Expected equal rows but found \(column.count) != \(self.rowCount)")
+            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
         } else {
             self.rowCount = UInt64(column.count)
         }
@@ -140,7 +140,7 @@ public struct ArrowColumns {
 
     mutating func addDoubleColumn(column: [Double], columnName: String) {
         if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "Expected equal rows but found \(column.count) != \(self.rowCount)")
+            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
         } else {
             self.rowCount = UInt64(column.count)
         }

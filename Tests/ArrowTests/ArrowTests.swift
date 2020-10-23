@@ -1,4 +1,5 @@
 import XCTest
+import PenguinTables
 import class Foundation.Bundle
 
 @testable import SwiftArrow
@@ -339,6 +340,37 @@ final class ArrowLibTests: XCTestCase {
         XCTAssertEqual(swiftTable.rowCount, numRows)
         XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
         XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
+    }
+
+    func testArrayEquivalenceWithNan(array1: [Double], array2: [Double]) -> Bool {
+        var result: Bool = true
+        if array1.count != array2.count {
+            return false
+        }
+        for (element1, element2) in zip(array1, array2) {
+            if element1.isNaN && element2.isNaN {
+                result = result && true
+            } else if element1 == element2 {
+                result = result && true
+            } else {
+                result = false
+                break
+            }
+        }
+        return result
+    }
+
+    func testHandlingNans() {
+        let doublesColumn: [Double] = [1.22, 0.33, -11.2, Double.nan, Double.nan, 1.44]
+        var arrowColumns = ArrowColumns()
+        arrowColumns.addDoubleColumn(column: doublesColumn, columnName: "doublesWithNans")
+        let filePath = "./doubleWithNans.feather"
+        try! arrowColumns.saveColumnsToFeather(outputPath: filePath)
+
+        let decodedColumns = try! ArrowColumns.readColumnsFromFeather(filePath: filePath)
+        /*XCTAssertTrue(doublesColumn.elementsEqual(decodedColumns[0] as! [Double]))*/
+        XCTAssertTrue(testArrayEquivalenceWithNan(array1: doublesColumn, array2: decodedColumns[0] as! [Double]))
+        XCTAssertFalse(testArrayEquivalenceWithNan(array1: doublesColumn, array2: [1.0, 1.0, 1.0]))
     }
 
     static var allTests = [

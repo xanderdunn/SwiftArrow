@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "Penguin",
+        "repositoryURL": "https://github.com/saeta/penguin.git",
+        "state": {
+          "branch": "master",
+          "revision": "bb3118efc29779b123caa7a83f1694d9b92e9fa7",
+          "version": null
+        }
+      },
+      {
         "package": "SwiftyTextTable",
         "repositoryURL": "https://github.com/scottrhoyt/SwiftyTextTable.git",
         "state": {

@@ -13,7 +13,10 @@ let package = Package(
     dependencies: [
         .package(name: "SwiftyTextTable",
                  url: "https://github.com/scottrhoyt/SwiftyTextTable.git",
-                 from: "0.5.0")
+                 from: "0.5.0"),
+        .package(name: "Penguin", // Google Brain's Swift version of pandas
+                 url: "https://github.com/saeta/penguin.git",
+                 .branch("master")),
     ],
     targets: [
         .target(name: "CMemoryHelper", path: "./Sources/CMemoryHelper"),
@@ -24,7 +27,9 @@ let package = Package(
             ]),
         .target(name: "SwiftArrow", dependencies: ["CArrow",
                                                    "SwiftyTextTable",
-                                                   "CMemoryHelper"]),
+                                                   "CMemoryHelper",
+                                                   .product(name: "PenguinTables", package: "Penguin")
+                                                  ]),
         .testTarget(name: "ArrowTests", dependencies: ["SwiftArrow"])
     ]
 )
