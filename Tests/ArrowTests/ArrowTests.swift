@@ -277,7 +277,6 @@ final class ArrowLibTests: XCTestCase {
 
     func testLargeColumns() {
         let numRows = 5_000_000
-        print(Date(), getMemoryUsageString()!, "Creating random large column values...")
         /*XCTAssertTrue(getMemoryUsage()! < 40_000_000)*/
         let initialMemoryUsage = getMemoryUsage()!
         let memoryCushion: UInt64 = 5_000_000
@@ -293,23 +292,19 @@ final class ArrowLibTests: XCTestCase {
         XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
 
         let filePath: String = "./data/swiftArrowLargeColumnsTest.feather"
-        print(Date(), getMemoryUsageString()!, "Saving large columns to .feather...")
         do {
             try largeColumns.saveColumnsToFeather(outputPath: filePath)
             // Saving to feather makes a single copy, so 2 * data size
             XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + 2 * dataMemorySize + memoryCushion)
-            print(Date(), getMemoryUsageString()!, "Done saving to .feather.")
         } catch {
             print(error)
         }
         do {
-            print(Date(), getMemoryUsageString()!, "Reading from .feather...")
             XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + 2 * dataMemorySize + memoryCushion)
             let columns = try ArrowColumns.readColumnsFromFeather(filePath: filePath)
             // TODO: The goal is to get this 5x down to 4x
             // https://github.com/xanderdunn/SwiftArrow/issues/7
             XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + 5 * dataMemorySize + memoryCushion)
-            print(Date(), getMemoryUsageString()!, "Done reading from .feather.")
             XCTAssertEqual(columns.columns, columnNames)
             XCTAssertEqual(columns[0].count, numRows)
         } catch {
@@ -318,25 +313,24 @@ final class ArrowLibTests: XCTestCase {
     }
 
     func testBasicMemoryUsage() {
+        let numRows: UInt64 = 1_000_000
+        let memoryCushion: UInt64 = 5_000_000
+        let dataMemorySize: UInt64 = 2 * 8 * numRows
+        let initialMemoryUsage = getMemoryUsage()!
         let swiftTable: ArrowColumns = { () -> ArrowColumns in
-            print(Date(), getMemoryUsageString()!, "Creating random large column values...")
-            let initialMemoryUsage = getMemoryUsage()!
-            let numRows = 1_000_000
             let doublesColumn: [Double] = (0..<numRows).concurrentMap { Double.random(in: 0.0...Double($0)) }
             let intsColumn: [Int64] = (0..<numRows).concurrentMap { Int64.random(in: Int64(0)...Int64($0)) }
-            print(intsColumn.count, doublesColumn.count)
-            print(Date(), getMemoryUsageString()!, "Done creating random columns")
-            XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + 16_000_000 + 5_000_000)
+            XCTAssertEqual(UInt64(intsColumn.count), numRows)
+            XCTAssertEqual(UInt64(doublesColumn.count), numRows)
+            XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
             var largeColumns: ArrowColumns = ArrowColumns()
             largeColumns.addInt64Column(column: intsColumn, columnName: "test_ints")
             largeColumns.addDoubleColumn(column: doublesColumn, columnName: "test_doubles")
-            print(Date(), getMemoryUsageString()!, "Done creating array of arrays")
-            XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + 16_000_000 + 5_000_000)
+            XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
             return largeColumns
         }()
-        print(swiftTable.rowCount)
-        print(Date(), getMemoryUsageString()!, "Outside of closure")
-        XCTAssertTrue(getMemoryUsage()! <= 30_000_000 + 16_000_000 + 5_000_000)
+        XCTAssertEqual(swiftTable.rowCount, numRows)
+        XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
     }
 
     static var allTests = [
