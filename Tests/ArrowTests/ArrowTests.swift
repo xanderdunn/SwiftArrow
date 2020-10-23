@@ -166,20 +166,23 @@ final class ArrowLibTests: XCTestCase {
     }
 
     func testSwiftSingleTypeMatrixToFile() throws {
-        let row1: [Any] = ["e12fe9879b95b35479a1195bd2190b10", false, "asf"]
-        let row2: [Any] = ["02528b1bca6c637a9d725488efa1de80", true, "asdf"]
+        /*let row1: [Any] = ["e12fe9879b95b35479a1195bd2190b10", false, "asf"]*/
+        /*let row2: [Any] = ["02528b1bca6c637a9d725488efa1de80", true, "asdf"]*/
         let column1: [String] = ["e12fe9879b95b35479a1195bd2190b10", "02528b1bca6c637a9d725488efa1de80", "bar"]
         let column2: [String] = ["test", "test2", "foo"]
         let column3: [String] = ["asf", "asdf", "asdfasd"]
-        let columns: [[BaseArrowArrayElement]] = [column1, column2, column3]
+        var columns: ArrowColumns = ArrowColumns()
         let columnNames = ["id", "stuff", "stuff2"]
-        try saveColumnsToFeather(columns: columns, columnNames: columnNames, outputPath: "tableSingle.feather")
-        let rows = [row1, row2]
-        if let rows = rows as? [[BaseArrowArrayElement]] {
-            try saveRowsToFeather(rows: rows, columnNames: columnNames, outputPath: "tableSingle.feather")
-        } else {
-            fatalError()
-        }
+        columns.addStringColumn(column: column1, columnName: columnNames[0])
+        columns.addStringColumn(column: column2, columnName: columnNames[1])
+        columns.addStringColumn(column: column3, columnName: columnNames[2])
+        try columns.saveColumnsToFeather(outputPath: "tableSingle.feather")
+        /*let rows = [row1, row2]*/
+        /*if let rows = rows as? [[BaseArrowArrayElement]] {*/
+            /*try saveRowsToFeather(rows: rows, columnNames: columnNames, outputPath: "tableSingle.feather")*/
+        /*} else {*/
+            /*fatalError()*/
+        /*}*/
     }
 
     func testSwiftMultipleTypesMatrixToFile() throws {
@@ -192,11 +195,13 @@ final class ArrowLibTests: XCTestCase {
         let rows = [row1, row2, row3]
         let filePath = "tableMultiple.feather"
         let columnNames = ["id", "ask", "time", "prohibited"]
-        if let rows = rows as? [[BaseArrowArrayElement]] {
-            try saveRowsToFeather(rows: rows, columnNames: columnNames, outputPath: filePath)
-        } else {
-            fatalError()
-        }
+        let columns = rows.transposed()
+        var arrowColumns = ArrowColumns()
+        arrowColumns.addStringColumn(column: columns[0] as! [String], columnName: columnNames[0])
+        arrowColumns.addDoubleColumn(column: columns[1] as! [Double], columnName: columnNames[1])
+        arrowColumns.addDateColumn(column: columns[2] as! [Date], columnName: columnNames[2])
+        arrowColumns.addBoolColumn(column: columns[3] as! [Bool], columnName: columnNames[3])
+        try arrowColumns.saveColumnsToFeather(outputPath: filePath)
 
         let (columnsDecoded, columnNamesDecoded) = try readColumnsFromFeather(filePath: filePath)
         XCTAssertEqual(columnsDecoded[1][2] as? Double, 879.5)
@@ -235,24 +240,27 @@ final class ArrowLibTests: XCTestCase {
         let numRows = 100_000
         let randomColumnValues1: [Double] = (0..<numRows).map { Double.random(in: 0.0...Double($0)) }
         let randomColumnValues2: [Int] = (0..<numRows).map { Int.random(in: 0...$0) }
-        let longColumnTable: [[BaseArrowArrayElement]] = [randomColumnValues1, randomColumnValues2]
+        var longColumnTable: ArrowColumns = ArrowColumns()
         let columnNames = ["Test 42 Column", "Test Long Column of Ints"]
+        longColumnTable.addDoubleColumn(column: randomColumnValues1, columnName: columnNames[0])
+        longColumnTable.addIntColumn(column: randomColumnValues2, columnName: columnNames[1])
         do {
             let filePath = "./longColumnTable.feather"
-            try saveColumnsToFeather(columns: longColumnTable,
-                                     columnNames: columnNames,
-                                     outputPath: filePath)
+            try longColumnTable.saveColumnsToFeather(outputPath: filePath)
             let (decodedColumns, decodedColumnNames) = try readColumnsFromFeather(filePath: filePath)
             XCTAssertEqual(decodedColumns[0].count, numRows)
             XCTAssertEqual(decodedColumns[1].count, numRows)
             XCTAssertEqual(decodedColumnNames, columnNames)
-            if let doubleColumn1 = decodedColumns[0] as? [Double],
-               let doubleColumn2 = decodedColumns[1] as? [Int] {
-                XCTAssertEqual(doubleColumn1, randomColumnValues1)
-                XCTAssertEqual(doubleColumn2, randomColumnValues2)
-            } else {
-                assertionFailure("Expected the column to be Double and Int values")
+            guard let doubleColumn = decodedColumns[0] as? [Double] else {
+                assertionFailure("Couldn't decode column as Doubles")
+                return
             }
+            XCTAssertEqual(doubleColumn, randomColumnValues1)
+            guard let intColumn = decodedColumns[1] as? [Int] else {
+                assertionFailure("Couldn't decode column as Int")
+                return
+            }
+            XCTAssertEqual(intColumn, randomColumnValues2)
         } catch {
             print("Failed")
         }
@@ -261,15 +269,19 @@ final class ArrowLibTests: XCTestCase {
     /*func testLargeColumns() {*/
         /*let numRows = 5_000_000*/
         /*print(Date(), getMemoryUsageString()!, "Creating random large column values...")*/
-        /*XCTAssertTrue(getMemoryUsage()! < 30_000_000)*/
+        /*[>XCTAssertTrue(getMemoryUsage()! < 40_000_000)<]*/
         /*let doublesColumn: [Double] = (0..<numRows).map { Double.random(in: 0.0...Double($0)) }*/
-        /*let intsColumn: [Int] = (0..<numRows).map { Int.random(in: 0...$0) }*/
-        /*let largeColumns: [[BaseArrowArrayElement]] = [doublesColumn, intsColumn]*/
+        /*let intsColumn: [Int64] = (0..<numRows).map { Int64.random(in: Int64(0)...Int64($0)) }*/
+
+        /*var largeColumns: ArrowColumns = ArrowColumns()*/
         /*let columnNames: [String] = ["doubles", "ints"]*/
+        /*largeColumns.addDoubleColumn(column: doublesColumn, columnName: columnNames[0])*/
+        /*largeColumns.addInt64Column(column: intsColumn, columnName: columnNames[1])*/
+
         /*let filePath: String = "./data/swiftArrowLargeColumnsTest.feather"*/
         /*print(Date(), getMemoryUsageString()!, "Saving large columns to .feather...")*/
         /*do {*/
-            /*try saveColumnsToFeather(columns: largeColumns, columnNames: columnNames, outputPath: filePath)*/
+            /*try largeColumns.saveColumnsToFeather(outputPath: filePath)*/
             /*print(Date(), getMemoryUsageString()!, "Done saving to .feather.")*/
         /*} catch {*/
             /*print(error)*/
@@ -289,22 +301,22 @@ final class ArrowLibTests: XCTestCase {
         let swiftTable: ArrowColumns = { () -> ArrowColumns in
             print(Date(), getMemoryUsageString()!, "Creating random large column values...")
             XCTAssertTrue(getMemoryUsage()! < 30_000_000)
-            let numRows = 5_000_000
+            let numRows = 1_000_000
             let doublesColumn: [Double] = (0..<numRows).concurrentMap { Double.random(in: 0.0...Double($0)) }
-            let intsColumn: [Int] = (0..<numRows).concurrentMap { Int.random(in: 0...$0) }
+            let intsColumn: [Int64] = (0..<numRows).concurrentMap { Int64.random(in: Int64(0)...Int64($0)) }
             print(intsColumn.count, doublesColumn.count)
             print(Date(), getMemoryUsageString()!, "Done creating random columns")
-            XCTAssertTrue(getMemoryUsage()! <= 30_000_000 + 80_000_000 + 10_000_000)
-            let largeColumns: ArrowColumns = ArrowColumns(columns: [doublesColumn, intsColumn],
-                                                          columnNames: ["test_doubles", "test_ints"])
-            /*let largeColumns: [[BaseArrowArrayElement]] = [doublesColumn, intsColumn]*/
+            XCTAssertTrue(getMemoryUsage()! <= 30_000_000 + 16_000_000 + 5_000_000)
+            var largeColumns: ArrowColumns = ArrowColumns()
+            largeColumns.addInt64Column(column: intsColumn, columnName: "test_ints")
+            largeColumns.addDoubleColumn(column: doublesColumn, columnName: "test_doubles")
             print(Date(), getMemoryUsageString()!, "Done creating array of arrays")
-            XCTAssertTrue(getMemoryUsage()! <= 30_000_000 + 80_000_000 + 10_000_000)
+            XCTAssertTrue(getMemoryUsage()! <= 30_000_000 + 16_000_000 + 5_000_000)
             return largeColumns
         }()
         print(swiftTable.rowCount)
         print(Date(), getMemoryUsageString()!, "Outside of closure")
-        XCTAssertTrue(getMemoryUsage()! <= 30_000_000 + 80_000_000 + 10_000_000)
+        XCTAssertTrue(getMemoryUsage()! <= 30_000_000 + 16_000_000 + 5_000_000)
     }
 
     static var allTests = [
@@ -326,5 +338,6 @@ final class ArrowLibTests: XCTestCase {
         ("testSwiftMultipleTypesMatrixToFile", testSwiftMultipleTypesMatrixToFile),
         ("testMultiChunkArrays", testMultiChunkArrays),
         /*("testLargeColumns", testLargeColumns)*/
+        ("testBasicMemoryUsage", testBasicMemoryUsage)
     ]
 }
