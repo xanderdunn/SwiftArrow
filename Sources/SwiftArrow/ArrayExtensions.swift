@@ -17,9 +17,9 @@ extension RandomAccessCollection {
             resultCount = n
             let baseAddress = uninitializedMemory.baseAddress!
 
-            print("Running DispatchQueue.concurrentPerform with batchCount \(batchCount)...")
+            /*print("Running DispatchQueue.concurrentPerform with batchCount \(batchCount)...")*/
             DispatchQueue.concurrentPerform(iterations: batchCount) { b in
-                print("concurrentPerform iteration \(b)")
+                /*print("concurrentPerform iteration \(b)")*/
                 let startOffset = b * n / batchCount
                 let endOffset = (b + 1) * n / batchCount
                 var sourceIndex = index(self.startIndex, offsetBy: startOffset)

@@ -259,8 +259,9 @@ final class ArrowLibTests: XCTestCase {
     }
 
     /*func testLargeColumns() {*/
-        /*let numRows = 50_000_000*/
+        /*let numRows = 5_000_000*/
         /*print(Date(), getMemoryUsageString()!, "Creating random large column values...")*/
+        /*XCTAssertTrue(getMemoryUsage()! < 30_000_000)*/
         /*let doublesColumn: [Double] = (0..<numRows).map { Double.random(in: 0.0...Double($0)) }*/
         /*let intsColumn: [Int] = (0..<numRows).map { Int.random(in: 0...$0) }*/
         /*let largeColumns: [[BaseArrowArrayElement]] = [doublesColumn, intsColumn]*/
@@ -283,6 +284,28 @@ final class ArrowLibTests: XCTestCase {
             /*print(error)*/
         /*}*/
     /*}*/
+
+    func testBasicMemoryUsage() {
+        let swiftTable: ArrowColumns = { () -> ArrowColumns in
+            print(Date(), getMemoryUsageString()!, "Creating random large column values...")
+            XCTAssertTrue(getMemoryUsage()! < 30_000_000)
+            let numRows = 5_000_000
+            let doublesColumn: [Double] = (0..<numRows).concurrentMap { Double.random(in: 0.0...Double($0)) }
+            let intsColumn: [Int] = (0..<numRows).concurrentMap { Int.random(in: 0...$0) }
+            print(intsColumn.count, doublesColumn.count)
+            print(Date(), getMemoryUsageString()!, "Done creating random columns")
+            XCTAssertTrue(getMemoryUsage()! <= 30_000_000 + 80_000_000 + 10_000_000)
+            let largeColumns: ArrowColumns = ArrowColumns(columns: [doublesColumn, intsColumn],
+                                                          columnNames: ["test_doubles", "test_ints"])
+            /*let largeColumns: [[BaseArrowArrayElement]] = [doublesColumn, intsColumn]*/
+            print(Date(), getMemoryUsageString()!, "Done creating array of arrays")
+            XCTAssertTrue(getMemoryUsage()! <= 30_000_000 + 80_000_000 + 10_000_000)
+            return largeColumns
+        }()
+        print(swiftTable.rowCount)
+        print(Date(), getMemoryUsageString()!, "Outside of closure")
+        XCTAssertTrue(getMemoryUsage()! <= 30_000_000 + 80_000_000 + 10_000_000)
+    }
 
     static var allTests = [
         ("testCreateAndSaveDoublesToFile", testCreateAndSaveDoublesToFile),

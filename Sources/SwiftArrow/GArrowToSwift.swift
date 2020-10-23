@@ -28,11 +28,13 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[B
             print("Here1", getMemoryUsageString()!)
             let dataType = garrow_chunked_array_get_value_data_type(chunkedArray)
             if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_double_data_type_new())) == 1 {
-                if let swiftArray: [Double] = Array(gArray: gArray) {
-                    return swiftArray
-                } else {
-                    return []
-                }
+                let swiftArray: [Double] = gArrowTableColumnToSwift(gArray: gArray)
+                return swiftArray
+                /*if let swiftArray: [Double] = Array(gArray: gArray) {*/
+                    /*return swiftArray*/
+                /*} else {*/
+                    /*return []*/
+                /*}*/
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_string_data_type_new())) == 1 {
                 let swiftArray: [String] = gArrowTableColumnToSwift(gArray: gArray)
                 return swiftArray
@@ -43,11 +45,13 @@ func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> [[B
                     return []
                 }
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_int64_data_type_new())) == 1 {
-                if let swiftArray: [Int] = Array(gArray: gArray) {
-                    return swiftArray
-                } else {
-                    return []
-                }
+                let swiftArray: [Int] = gArrowTableColumnToSwift(gArray: gArray)
+                return swiftArray
+                /*if let swiftArray: [Int] = Array(gArray: gArray) {*/
+                    /*return swiftArray*/
+                /*} else {*/
+                    /*return []*/
+                /*}*/
             } else if garrow_data_type_equal(dataType, GARROW_DATA_TYPE(garrow_boolean_data_type_new())) == 1 {
                 let swiftArray: [Bool] = gArrowTableColumnToSwift(gArray: gArray)
                 return swiftArray

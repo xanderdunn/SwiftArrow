@@ -6,6 +6,104 @@ import CArrowMac
 import CArrowLinux
 #endif
 
+enum ArrowColumnDataType {
+  case int
+  case int64
+  case double
+  case float
+  case string
+  case bool
+  case date
+}
+
+struct ArrowColumnMetadata {
+    let name: String
+    let dataType: ArrowColumnDataType
+    let index: UInt8 // The index of this column in the array of columns of this type
+}
+
+/**
+This is the full schema along with Swift columns for a table
+*/
+struct ArrowColumns {
+    let intColumns: [[Int]]
+    let int64Columns: [[Int64]]
+    let doubleColumns: [[Double]]
+    let floatColumns: [[Float]]
+    let stringColumns: [[String]]
+    let boolColumns: [[Bool]]
+    let dateColumns: [[Date]]
+    let metadata: [ArrowColumnMetadata]
+    let rowCount: UInt64
+
+    init(columns: [[Any]], columnNames: [String]) {
+        var _intColumns: [[Int]] = []
+        var _int64Columns: [[Int64]] = []
+        var _doubleColumns: [[Double]] = []
+        var _floatColumns: [[Float]] = []
+        var _stringColumns: [[String]] = []
+        var _boolColumns: [[Bool]] = []
+        var _dateColumns: [[Date]] = []
+        var _metadata: [ArrowColumnMetadata] = []
+        var _rowCount: UInt64?
+
+        for (column, columnName) in zip(columns, columnNames) {
+            if let _rowCount = _rowCount {
+                assert(column.count == _rowCount)
+            } else {
+                _rowCount = UInt64(column.count)
+            }
+            if let column = column as? [Int] {
+                _intColumns.append(column)
+                _metadata.append(ArrowColumnMetadata(name: columnName,
+                                                     dataType: ArrowColumnDataType.int,
+                                                     index: UInt8(_intColumns.count - 1)))
+            } else if let column = column as? [Int64] {
+                _int64Columns.append(column)
+                _metadata.append(ArrowColumnMetadata(name: columnName,
+                                                     dataType: ArrowColumnDataType.int64,
+                                                     index: UInt8(_int64Columns.count - 1)))
+            } else if let column = column as? [Double] {
+                _doubleColumns.append(column)
+                _metadata.append(ArrowColumnMetadata(name: columnName,
+                                                     dataType: ArrowColumnDataType.double,
+                                                     index: UInt8(_doubleColumns.count - 1)))
+            } else if let column = column as? [Float] {
+                _floatColumns.append(column)
+                _metadata.append(ArrowColumnMetadata(name: columnName,
+                                                     dataType: ArrowColumnDataType.float,
+                                                     index: UInt8(_floatColumns.count - 1)))
+            } else if let column = column as? [String] {
+                _stringColumns.append(column)
+                _metadata.append(ArrowColumnMetadata(name: columnName,
+                                                     dataType: ArrowColumnDataType.string,
+                                                     index: UInt8(_stringColumns.count - 1)))
+            } else if let column = column as? [Bool] {
+                _boolColumns.append(column)
+                _metadata.append(ArrowColumnMetadata(name: columnName,
+                                                     dataType: ArrowColumnDataType.bool,
+                                                     index: UInt8(_boolColumns.count - 1)))
+            } else if let column = column as? [Date] {
+                _dateColumns.append(column)
+                _metadata.append(ArrowColumnMetadata(name: columnName,
+                                                     dataType: ArrowColumnDataType.date,
+                                                     index: UInt8(_dateColumns.count - 1)))
+            } else {
+                assertionFailure("\(type(of: column)) is not a supported data type.")
+            }
+        }
+        self.intColumns = _intColumns
+        self.int64Columns = _int64Columns
+        self.doubleColumns = _doubleColumns
+        self.floatColumns = _floatColumns
+        self.stringColumns = _stringColumns
+        self.dateColumns = _dateColumns
+        self.boolColumns = _boolColumns
+        self.metadata = _metadata
+        self.rowCount = _rowCount!
+    }
+}
+
 public protocol BaseArrowArrayElement: CustomStringConvertible {
 }
 
