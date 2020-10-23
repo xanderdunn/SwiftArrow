@@ -151,7 +151,7 @@ public struct ArrowColumns {
                                                  index: self.doubleColumns.count - 1))
     }
 
-    static func readColumnsFromFeather(filePath: String) throws -> ArrowColumns {
+    public static func readColumnsFromFeather(filePath: String) throws -> ArrowColumns {
         print("\(#function):\(#line)", getMemoryUsageString()!)
         let gTable = try loadGTableFromFeather(filePath: filePath)
         print("\(#function):\(#line)", getMemoryUsageString()!)
