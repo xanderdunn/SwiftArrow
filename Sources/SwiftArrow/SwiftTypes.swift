@@ -17,24 +17,25 @@ extension PTypedColumn {
     }
 }
 
+// TODO: Improve performance by checking if there are any nulls. If not, call append_values rather than iterating with
+//   append_value
+
 extension PTypedColumn where T == String {
     func toGArrowArray() throws -> UnsafeMutablePointer<GArrowArray>? {
         var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         let arrayBuilder: UnsafeMutablePointer<GArrowStringArrayBuilder>? = garrow_string_array_builder_new()
-        #if canImport(Darwin)
-        let numValues: Int64 = Int64(self.count)
-        #else
-        let numValues: Int = self.count
-        #endif
-        var cValues: [UnsafePointer<Int8>?] = self.values.map { UnsafePointer<Int8>(strdup($0)) }
-        result = garrow_string_array_builder_append_strings(arrayBuilder,
-                                                            &cValues,
-                                                            numValues,
-                                                            [],
-                                                            0,
-                                                            &error)
-        try checkForError(result: result, error: error)
+        for value in self.values {
+            if let value = value {
+                let cValue: UnsafePointer<Int8>? = UnsafePointer<Int8>(strdup(value))
+                result = garrow_string_array_builder_append_string(arrayBuilder, cValue, &error)
+                try checkForError(result: result, error: error)
+            } else {
+                let cValue: UnsafePointer<Int8>? = UnsafePointer<Int8>(strdup(""))
+                result = garrow_string_array_builder_append_string(arrayBuilder, cValue, &error)
+                try checkForError(result: result, error: error)
+            }
+        }
         return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 }
