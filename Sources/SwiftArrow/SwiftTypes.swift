@@ -1,203 +1,138 @@
 import Foundation
 
+import PenguinTables
 #if canImport(Darwin)
 import CArrowMac
 #else
 import CArrowLinux
 #endif
 
-enum ArrowColumnDataType {
-  case int
-  case int64
-  case double
-  case float
-  case string
-  case bool
-  case date
+extension PTypedColumn {
+    public var values: [T?] {
+        var values = [T?]()
+        for i in 0..<self.count {
+            values.append(self[i])
+        }
+        return values
+    }
 }
 
-public struct ArrowColumnMetadata {
-    let name: String
-    let dataType: ArrowColumnDataType
-    let index: Int // The index of this column in the array of columns of this type
+extension PTypedColumn where T == String {
+    func toGArrowArray() throws -> UnsafeMutablePointer<GArrowArray>? {
+        var error: UnsafeMutablePointer<GError>?
+        var result: gboolean
+        let arrayBuilder: UnsafeMutablePointer<GArrowStringArrayBuilder>? = garrow_string_array_builder_new()
+        #if canImport(Darwin)
+        let numValues: Int64 = Int64(self.count)
+        #else
+        let numValues: Int = self.count
+        #endif
+        var cValues: [UnsafePointer<Int8>?] = self.values.map { UnsafePointer<Int8>(strdup($0)) }
+        result = garrow_string_array_builder_append_strings(arrayBuilder,
+                                                            &cValues,
+                                                            numValues,
+                                                            [],
+                                                            0,
+                                                            &error)
+        try checkForError(result: result, error: error)
+        return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+    }
 }
 
-/**
-This is the full schema along with Swift columns for a table
-*/
-public struct ArrowColumns {
-    var intColumns: [[Int]] = []
-    var int64Columns: [[Int64]] = []
-    var doubleColumns: [[Double]] = []
-    var floatColumns: [[Float]] = []
-    var stringColumns: [[String]] = []
-    var boolColumns: [[Bool]] = []
-    var dateColumns: [[Date]] = []
-    public var metadata: [ArrowColumnMetadata] = []
-    public var columns: [String] {
-        return metadata.map { $0.name }
-    }
-    public var rowCount: UInt64 = 0
-    public var columnCount: UInt64 = 0
+extension PTypedColumn where T == Bool {
+    func toGArrowArray() throws -> UnsafeMutablePointer<GArrowArray>? {
+        var error: UnsafeMutablePointer<GError>?
+        var result: gboolean
+        let arrayBuilder: UnsafeMutablePointer<GArrowBooleanArrayBuilder>? = garrow_boolean_array_builder_new()
 
-    public subscript(index: Int) -> [Any] {
-        let columnMetadata = self.metadata[index]
-        switch columnMetadata.dataType {
-        case .int:
-            return self.intColumns[columnMetadata.index]
-        case .int64:
-            return self.int64Columns[columnMetadata.index]
-        case .double:
-            return self.doubleColumns[columnMetadata.index]
-        case .float:
-            return self.floatColumns[columnMetadata.index]
-        case .string:
-            return self.stringColumns[columnMetadata.index]
-        case .bool:
-            return self.boolColumns[columnMetadata.index]
-        case .date:
-            return self.dateColumns[columnMetadata.index]
-        }
-    }
-
-    mutating func addFloatColumn(column: [Float], columnName: String) {
-        if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
-        } else {
-            self.rowCount = UInt64(column.count)
-        }
-        self.columnCount += 1
-        self.floatColumns.append(column)
-        print("Added float column \(columnName) with count \(column.count)")
-        self.metadata.append(ArrowColumnMetadata(name: columnName,
-                                                 dataType: ArrowColumnDataType.float,
-                                                 index: self.floatColumns.count - 1))
-    }
-
-    mutating func addBoolColumn(column: [Bool], columnName: String) {
-        if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
-        } else {
-            self.rowCount = UInt64(column.count)
-        }
-        self.columnCount += 1
-        self.boolColumns.append(column)
-        print("Added bool column \(columnName) with count \(column.count)")
-        self.metadata.append(ArrowColumnMetadata(name: columnName,
-                                                 dataType: ArrowColumnDataType.bool,
-                                                 index: self.boolColumns.count - 1))
-    }
-
-    mutating func addDateColumn(column: [Date], columnName: String) {
-        if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
-        } else {
-            self.rowCount = UInt64(column.count)
-        }
-        self.columnCount += 1
-        self.dateColumns.append(column)
-        print("Added date column \(columnName) with count \(column.count)")
-        self.metadata.append(ArrowColumnMetadata(name: columnName,
-                                                 dataType: ArrowColumnDataType.date,
-                                                 index: self.dateColumns.count - 1))
-    }
-
-    mutating func addStringColumn(column: [String], columnName: String) {
-        if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
-        } else {
-            self.rowCount = UInt64(column.count)
-        }
-        self.columnCount += 1
-        self.stringColumns.append(column)
-        print("Added string column \(columnName) with count \(column.count)")
-        self.metadata.append(ArrowColumnMetadata(name: columnName,
-                                                 dataType: ArrowColumnDataType.string,
-                                                 index: self.stringColumns.count - 1))
-    }
-
-    mutating func addIntColumn(column: [Int], columnName: String) {
-        if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
-        } else {
-            self.rowCount = UInt64(column.count)
-        }
-        self.columnCount += 1
-        self.intColumns.append(column)
-        print("Added int column \(columnName) with count \(column.count)")
-        self.metadata.append(ArrowColumnMetadata(name: columnName,
-                                                 dataType: ArrowColumnDataType.int,
-                                                 index: self.intColumns.count - 1))
-    }
-
-    mutating func addInt64Column(column: [Int64], columnName: String) {
-        if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
-        } else {
-            self.rowCount = UInt64(column.count)
-        }
-        self.columnCount += 1
-        self.int64Columns.append(column)
-        print("Added int64 column \(columnName) with count \(column.count)")
-        self.metadata.append(ArrowColumnMetadata(name: columnName,
-                                                 dataType: ArrowColumnDataType.int64,
-                                                 index: self.int64Columns.count - 1))
-    }
-
-    mutating func addDoubleColumn(column: [Double], columnName: String) {
-        if self.rowCount > 0 {
-            assert(column.count == self.rowCount, "\(columnName): Unexpected rows \(column.count) != \(self.rowCount)")
-        } else {
-            self.rowCount = UInt64(column.count)
-        }
-        self.columnCount += 1
-        self.doubleColumns.append(column)
-        print("Added double column \(columnName) with count \(column.count)")
-        self.metadata.append(ArrowColumnMetadata(name: columnName,
-                                                 dataType: ArrowColumnDataType.double,
-                                                 index: self.doubleColumns.count - 1))
-    }
-
-    public static func readColumnsFromFeather(filePath: String) throws -> ArrowColumns {
-        print("\(#function):\(#line)", getMemoryUsageString()!)
-        let gTable = try loadGTableFromFeather(filePath: filePath)
-        print("\(#function):\(#line)", getMemoryUsageString()!)
-        if let gTable = gTable {
-            print("\(#function):\(#line)", getMemoryUsageString()!)
-            let columns = try ArrowColumns.gArrowTableToSwift(gTable: gTable)
-            print("\(#function):\(#line)", getMemoryUsageString()!)
-            return columns
-        } else {
-            throw ArrowError.failedRead("Failed to read .feather file from \(filePath)")
-        }
-    }
-
-    func saveColumnsToFeather(outputPath: String) throws {
-        var gArrays: [UnsafeMutablePointer<GArrowArray>?] = []
-        let columnNames = self.metadata.map { $0.name }
-        for metadata in self.metadata {
-            switch metadata.dataType {
-            case .int:
-                print("start int iteration", getMemoryUsageString()!)
-                gArrays.append(try Int.toGArrowArray(array: self.intColumns[metadata.index]))
-                print("appended an int column", getMemoryUsageString()!)
-            case .int64:
-                gArrays.append(try Int64.toGArrowArray(array: self.int64Columns[metadata.index]))
-            case .double:
-                gArrays.append(try Double.toGArrowArray(array: self.doubleColumns[metadata.index]))
-            case .float:
-                gArrays.append(try Float.toGArrowArray(array: self.floatColumns[metadata.index]))
-            case .string:
-                gArrays.append(try String.toGArrowArray(array: self.stringColumns[metadata.index]))
-            case .bool:
-                gArrays.append(try Bool.toGArrowArray(array: self.boolColumns[metadata.index]))
-            case .date:
-                gArrays.append(try Date.toGArrowArray(array: self.dateColumns[metadata.index]))
+        for value in self.values {
+            if let value = value, value == true {
+                result = garrow_boolean_array_builder_append_value(arrayBuilder, Int32(1), &error)
+                try checkForError(result: result, error: error)
+            } else if let value = value, value == false {
+                result = garrow_boolean_array_builder_append_value(arrayBuilder, Int32(0), &error)
+                try checkForError(result: result, error: error)
+            } else {
+                result = garrow_boolean_array_builder_append_null(arrayBuilder, &error)
+                try checkForError(result: result, error: error)
             }
         }
-        let gTable = try gArraysToGTable(arrays: gArrays, columns: columnNames)
+        return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+    }
+}
+
+extension PTypedColumn where T == Int {
+    func toGArrowArray() throws -> UnsafeMutablePointer<GArrowArray>? {
+        var error: UnsafeMutablePointer<GError>?
+        var result: gboolean
+        let arrayBuilder: UnsafeMutablePointer<GArrowInt64ArrayBuilder>? = garrow_int64_array_builder_new()
+        for value in self.values {
+            if let value = value {
+                #if canImport(Darwin)
+                let valueTyped = Int64(value)
+                #else
+                let valueTyped = value
+                #endif
+                result = garrow_int64_array_builder_append_value(arrayBuilder, valueTyped, &error)
+                assert(result != 0)
+            } else {
+                result = garrow_int64_array_builder_append_null(arrayBuilder, &error)
+                assert(result != 0)
+            }
+        }
+        return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+    }
+}
+
+extension PTypedColumn where T == Double {
+    func toGArrowArray() throws -> UnsafeMutablePointer<GArrowArray>? {
+        var error: UnsafeMutablePointer<GError>?
+        var result: gboolean
+        let arrayBuilder: UnsafeMutablePointer<GArrowDoubleArrayBuilder>? = garrow_double_array_builder_new()
+        for value in self.values {
+            if let value = value {
+                result = garrow_double_array_builder_append_value(arrayBuilder, value, &error)
+                try checkForError(result: result, error: error)
+            } else {
+                result = garrow_double_array_builder_append_null(arrayBuilder, &error)
+                try checkForError(result: result, error: error)
+            }
+        }
+        return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+    }
+}
+
+extension PTable {
+    // TODO: How to clean up this typing
+    func toFeather(filePath: String) throws {
+        var gArrays: [UnsafeMutablePointer<GArrowArray>?] = []
+        // TODO: How to get the type of each column
+        for columnName in self.columnNames {
+            let column = self[columnName]!
+            do {
+                let typedColumn: PTypedColumn<Int> = try column.asDType()
+                gArrays.append(try typedColumn.toGArrowArray())
+            } catch {
+                do {
+                    let typedColumn: PTypedColumn<Double> = try column.asDType()
+                    gArrays.append(try typedColumn.toGArrowArray())
+                } catch {
+                    do {
+                        let typedColumn: PTypedColumn<String> = try column.asDType()
+                        gArrays.append(try typedColumn.toGArrowArray())
+                    } catch {
+                        do {
+                            let typedColumn: PTypedColumn<Bool> = try column.asDType()
+                            gArrays.append(try typedColumn.toGArrowArray())
+                        } catch {
+                        }
+                    }
+                }
+            }
+        }
+        let gTable = try gArraysToGTable(arrays: gArrays, columns: self.columnNames)
         if let gTable = gTable {
-            try saveGTableToFeather(gTable, outputPath: outputPath)
+            try saveGTableToFeather(gTable, outputPath: filePath)
         } else {
             throw ArrowError.invalidTableCreation("Failed to create table")
         }
@@ -229,7 +164,8 @@ extension Date: ArrowArrayElement {
                                                               [],
                                                               0,
                                                               &error)
-        return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+        try checkForError(result: result, error: error)
+        return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Date] {
@@ -268,7 +204,8 @@ extension String: ArrowArrayElement {
                                                             [],
                                                             0,
                                                             &error)
-        return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+        try checkForError(result: result, error: error)
+        return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [String] {
@@ -303,7 +240,8 @@ extension Double: ArrowArrayElement {
                                                            [],
                                                            0,
                                                            &error)
-        return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+        try checkForError(result: result, error: error)
+        return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Double] {
@@ -329,7 +267,6 @@ protocol ConvertibleFromGArrowArray {
 extension Array: ConvertibleFromGArrowArray
 where Element: ArrowArrayElement {
     init?(gArray: UnsafeMutablePointer<GArrowArray>?) {
-        print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
         let primitiveArray: UnsafeMutablePointer<GArrowPrimitiveArray>? = GARROW_PRIMITIVE_ARRAY(gArray)
         let buffer: UnsafeMutablePointer<GArrowBuffer>? = garrow_primitive_array_get_data_buffer(primitiveArray)
         let ptrVal: OpaquePointer? = garrow_buffer_get_data(buffer) // GBytes
@@ -338,21 +275,17 @@ where Element: ArrowArrayElement {
             return nil
         }
         let ptr: UnsafePointer<Element> = bufferPointer.assumingMemoryBound(to: Element.self)
-        print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
 
         // This code avoids constructing and initialize from `UnsafeBufferPointer`
         // because that uses the `init<S : Sequence>(_ elements: S)` initializer,
         // which performs unnecessary copying.
         /*let dummyPointer = UnsafeMutablePointer<Element>.allocate(capacity: 1)*/
         let scalarCount = Int(garrow_array_get_length(gArray))
-        print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
         // TODO: This is allocating memory equal to the size of the dataset
-        print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
         self.init(unsafeUninitializedCapacity: scalarCount) { buffPtr, initializedCount in
             buffPtr.baseAddress!.assign(from: ptr, count: scalarCount)
             initializedCount = scalarCount
         }
-        print("\(#file):\(#function):\(#line)", getMemoryUsageString()!)
     }
 }
 
@@ -373,7 +306,8 @@ extension Float: ArrowArrayElement {
                                                            [],
                                                            0,
                                                            &error)
-        return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+        try checkForError(result: result, error: error)
+        return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Float] {
@@ -393,34 +327,27 @@ extension Float: ArrowArrayElement {
 
 extension Int: ArrowArrayElement {
     static func toGArrowArray(array: [Int]) throws -> UnsafeMutablePointer<GArrowArray>? {
-        print("\(#function):\(#line)", getMemoryUsageString()!)
         var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         let arrayBuilder: UnsafeMutablePointer<GArrowInt64ArrayBuilder>? = garrow_int64_array_builder_new()
-        print("\(#function):\(#line)", getMemoryUsageString()!)
         #if canImport(Darwin)
-        print("\(#function):\(#line)", getMemoryUsageString()!)
         let numValues: Int64 = Int64(array.count)
-        print("\(#function):\(#line)", getMemoryUsageString()!)
         #else
         let numValues: Int = array.count
         #endif
         #if canImport(Darwin)
-        print("\(#function):\(#line)", getMemoryUsageString()!)
         var array = array.map { Int64($0) }
-        print("\(#function):\(#line)", getMemoryUsageString()!)
         #else
         var array = array
         #endif
-        print("\(#function):\(#line)", getMemoryUsageString()!)
         result = garrow_int64_array_builder_append_values(arrayBuilder,
                                                           &array,
                                                           numValues,
                                                           [],
                                                           0,
                                                           &error)
-        print("\(#function):\(#line)", getMemoryUsageString()!)
-        return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+        try checkForError(result: result, error: error)
+        return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Int] {
@@ -468,10 +395,9 @@ extension Int64: ArrowArrayElement {
                                                           [],
                                                           0,
                                                           &error)
+        try checkForError(result: result, error: error)
         print("\(#function):\(#line)", getMemoryUsageString()!)
-        let returnValue = try completeGArrayBuilding(result: result,
-                                                     error: error,
-                                                     arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+        let returnValue = try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
         print("\(#function):\(#line)", getMemoryUsageString()!)
         return returnValue
     }
@@ -513,7 +439,8 @@ extension Bool: ArrowArrayElement {
                                                             [],
                                                             0,
                                                             &error)
-        return try completeGArrayBuilding(result: result, error: error, arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
+        try checkForError(result: result, error: error)
+        return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Bool] {
@@ -532,20 +459,19 @@ extension Bool: ArrowArrayElement {
 
 }
 
+func checkForError(result: gboolean, error: UnsafeMutablePointer<GError>?) throws {
+    if result == 0 {
+        let errorString: String = error != nil ? String(cString: error!.pointee.message) : ""
+        throw ArrowError.invalidArrayCreation(errorString)
+    }
+}
+
 /**
 Used to finish the creation of a GArrowArray
 */
-func completeGArrayBuilding(result: gboolean,
-                            error: UnsafeMutablePointer<GError>?,
-                            arrayBuilder: UnsafeMutablePointer<GArrowArrayBuilder>) throws ->
+func completeGArrayBuilding(arrayBuilder: UnsafeMutablePointer<GArrowArrayBuilder>) throws ->
                                                                                 UnsafeMutablePointer<GArrowArray>? {
-    var error = error
-    if result == 0 {
-        let errorString: String = error != nil ? String(cString: error!.pointee.message) : ""
-        g_error_free(error)
-        g_object_unref(arrayBuilder)
-        throw ArrowError.invalidArrayCreation(errorString)
-    }
+    var error: UnsafeMutablePointer<GError>?
     let gArray: UnsafeMutablePointer<GArrowArray>? = garrow_array_builder_finish(arrayBuilder,
                                                                                  &error)
     if let error = error {
