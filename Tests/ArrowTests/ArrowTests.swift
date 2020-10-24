@@ -233,7 +233,7 @@ final class ArrowLibTests: XCTestCase {
         XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
 
         let columnNames: [String] = ["doubles", "ints"]
-        let largeColumns: PTable = try! PTable(["doubles": PColumn(doublesColumn), "ints": PColumn(intsColumn)])
+        let largeColumns: PTable = try PTable(["doubles": PColumn(doublesColumn), "ints": PColumn(intsColumn)])
         XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
         XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
 
@@ -258,27 +258,25 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
-    func testBasicMemoryUsage() {
+    func testBasicMemoryUsage() throws {
         let numRows: UInt64 = 1_000_000
         let memoryCushion: UInt64 = 5_000_000
         let dataMemorySize: UInt64 = 2 * 8 * numRows
         let initialMemoryUsage = getMemoryUsage()!
-        let swiftTable: PTable = { () -> PTable in
+        let swiftTable: PTable = try { () -> PTable in
             let doublesColumn: [Double] = (0..<numRows).concurrentMap { Double.random(in: 0.0...Double($0)) }
             let intsColumn: [Int] = (0..<numRows).concurrentMap { Int.random(in: 0...Int($0)) }
             XCTAssertEqual(UInt64(intsColumn.count), numRows)
             XCTAssertEqual(UInt64(doublesColumn.count), numRows)
+            let ceiling = initialMemoryUsage + dataMemorySize + memoryCushion
+            XCTAssertTrue(getMemoryUsage()! <= ceiling)
+            let largeColumns: PTable = try PTable(["test_ints": PColumn(intsColumn),
+                                                    "test_doubles": PColumn(doublesColumn)])
             XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
-            XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
-            let largeColumns: PTable = try! PTable(["test_ints": PColumn(intsColumn),
-                                               "test_doubles": PColumn(doublesColumn)])
-            XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
-            XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
             return largeColumns
         }()
         XCTAssertEqual(swiftTable.count!, Int(numRows))
         XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
-        XCTAssertTrue(getMemoryUsage()! >= initialMemoryUsage + dataMemorySize - memoryCushion)
     }
 
 
@@ -299,7 +297,7 @@ final class ArrowLibTests: XCTestCase {
 
     // TODO: Add a test for nulls especially in Strings
 
-    func testPenguinMemoryAlloctions() {
+    func testPenguinMemoryAlloctions() throws {
         let numRows = 5_000_000
         let initialMemoryUsage = getMemoryUsage()!
         let memoryCushion: UInt64 = 45_000_000
@@ -310,7 +308,7 @@ final class ArrowLibTests: XCTestCase {
         let floor = initialMemoryUsage + dataMemorySize - memoryCushion
         XCTAssertTrue(getMemoryUsage()! <= ceiling)
         XCTAssertTrue(getMemoryUsage()! >= floor)
-        let table = try! PTable(["doublesColumn": doublesColumn])
+        let table = try PTable(["doublesColumn": doublesColumn])
         XCTAssertTrue(getMemoryUsage()! <= ceiling)
         XCTAssertTrue(getMemoryUsage()! >= floor)
         XCTAssertEqual(table.count, numRows)
