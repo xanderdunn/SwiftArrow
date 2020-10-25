@@ -61,7 +61,7 @@ func gArraysToGTable(arrays: [UnsafeMutablePointer<GArrowArray>?],
     return table
 }
 
-func saveGTableToFeather(_ gTable: UnsafeMutablePointer<GArrowTable>, outputPath: String) throws {
+public func saveGTableToFeather(_ gTable: UnsafeMutablePointer<GArrowTable>, outputPath: String) throws {
     var error: UnsafeMutablePointer<GError>?
     // TODO: How do I turn on compression?
     let properties = garrow_feather_write_properties_new()

@@ -14,17 +14,16 @@ func gArrowTableColumnToSwift<T: ArrowArrayElement>(gArray: UnsafeMutablePointer
 // Reading from .feather
 extension PTable {
 
-    public static func fromFeather(filePath: String) throws -> PTable {
+    public init(fromFeather filePath: String) throws {
         let gTable = try loadGTableFromFeather(filePath: filePath)
         if let gTable = gTable {
-            let columns = try PTable.gArrowTableToSwift(gTable: gTable)
-            return columns
+            self = try PTable(gTable)
         } else {
             throw ArrowError.failedRead("Failed to read .feather file from \(filePath)")
         }
     }
 
-    static func gArrowTableToSwift(gTable: UnsafeMutablePointer<GArrowTable>) throws -> PTable {
+    init(_ gTable: UnsafeMutablePointer<GArrowTable>) throws {
         let numColumns = Int(garrow_table_get_n_columns(gTable))
         var error: UnsafeMutablePointer<GError>?
         let columnNames = try gArrowTableGetSchema(gTable)
@@ -72,6 +71,6 @@ extension PTable {
                 throw ArrowError.invalidArrayCreation("Couldn't get GArrowArray from GArrowTable")
             }
         }
-        return try PTable(columns)
+        self = try PTable(columns)
     }
 }

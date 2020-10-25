@@ -73,7 +73,7 @@ final class ArrowLibTests: XCTestCase {
             if let table = table {
                 print("Columns of created table:")
                 let deserializedColumnsNames = try gArrowTableGetSchema(table)
-                let columns = try PTable.gArrowTableToSwift(gTable: table)
+                let columns = try PTable(table)
                 XCTAssertEqual(deserializedColumnsNames, columnNames)
                 let decodedColumn0: PTypedColumn<T> = try columns[columnNames[0]]!.asDType()
                 let decodedColumn1: PTypedColumn<T> = try columns[columnNames[1]]!.asDType()
@@ -84,7 +84,7 @@ final class ArrowLibTests: XCTestCase {
             // Save Table to feather file
             let outputPath = "./test\(T.self).feather"
             if let table = table {
-                let columns = try PTable.gArrowTableToSwift(gTable: table)
+                let columns = try PTable(table)
                 let column0: PTypedColumn<T> = try columns[columnNames[0]]!.asDType()
                 XCTAssertEqual(column0.values, values1)
                 let column1: PTypedColumn<T> = try columns[columnNames[1]]!.asDType()
@@ -100,7 +100,7 @@ final class ArrowLibTests: XCTestCase {
         let filePath = "./test\(T.self).feather"
         let gTable = try loadGTableFromFeather(filePath: filePath)
         if let gTable = gTable {
-            let columns = try PTable.gArrowTableToSwift(gTable: gTable)
+            let columns = try PTable(gTable)
             let deserializedColumnsNames = try gArrowTableGetSchema(gTable)
             XCTAssertEqual(deserializedColumnsNames, columnNames)
             let column0: PTypedColumn<T> = try columns[columnNames[0]]!.asDType()
@@ -196,7 +196,7 @@ final class ArrowLibTests: XCTestCase {
         XCTAssertEqual(table.columnNames, columnNames.sorted())
         try table.toFeather(filePath: filePath)
 
-        let columnsDecoded = try PTable.fromFeather(filePath: filePath)
+        let columnsDecoded = try PTable(fromFeather: filePath)
         let doubleColumnDecoded: PTypedColumn<Double> = try columnsDecoded[columnNames[1]]!.asDType()
         XCTAssertEqual(doubleColumnDecoded[2], 879.5)
         XCTAssertEqual(columnsDecoded.columnNames, columnNames.sorted())
@@ -211,7 +211,7 @@ final class ArrowLibTests: XCTestCase {
                                               columnNames[1]: PColumn(randomColumnValues2)])
         let filePath = "./longColumnTable.feather"
         try longColumnTable.toFeather(filePath: filePath)
-        let decodedColumns = try PTable.fromFeather(filePath: filePath)
+        let decodedColumns = try PTable(fromFeather: filePath)
         XCTAssertEqual(decodedColumns[columnNames[0]]!.count, numRows)
         XCTAssertEqual(decodedColumns[columnNames[1]]!.count, numRows)
         XCTAssertEqual(decodedColumns.columnNames, columnNames)
@@ -248,7 +248,7 @@ final class ArrowLibTests: XCTestCase {
         do {
             var ceiling = initialMemoryUsage + 5 * dataMemorySize + memoryCushion
             XCTAssertTrue(getMemoryUsage()! <= ceiling)
-            let columns = try PTable.fromFeather(filePath: filePath)
+            let columns = try PTable(fromFeather: filePath)
             // TODO: The goal is to reduce this by 1x size of the dataset
             // https://github.com/xanderdunn/SwiftArrow/issues/7
             ceiling = initialMemoryUsage + 7 * dataMemorySize + memoryCushion
@@ -287,7 +287,7 @@ final class ArrowLibTests: XCTestCase {
         let filePath = "./doublesWithNans.feather"
         try table.toFeather(filePath: filePath)
 
-        let decodedColumns = try PTable.fromFeather(filePath: filePath)
+        let decodedColumns = try PTable(fromFeather: filePath)
         XCTAssertTrue(testArrayEquivalenceWithNan(array1: doublesValues,
                                                   array2: try decodedColumns["doublesWithNans"]!.asDType()))
         let testValues: [Double] = [1.0, 1.0, 1.0]
@@ -314,6 +314,33 @@ final class ArrowLibTests: XCTestCase {
         XCTAssertEqual(table.count, numRows)
     }
 
+    func testCSVReading() throws {
+        let gTableFromCompressed = try readCSV(path: "./data/test_data.csv.gz")
+        if let gTable = gTableFromCompressed {
+            let pTable = try PTable(gTable)
+            XCTAssertEqual(try pTable["test_double"]!.asDType()[0], Double(11064))
+        } else {
+            fatalError()
+        }
+
+        let gTableFromRaw = try readCSV(path: "./data/test_data.csv")
+        if let gTable = gTableFromRaw {
+            let pTable = try PTable(gTable)
+            XCTAssertEqual(try pTable["test_double"]!.asDType()[0], Double(11064))
+        } else {
+            fatalError()
+        }
+
+        let gTableFromMultiple = try readCSVs(paths: ["./data/test_data.csv", "./data/test_data2.csv"])
+        if let gTable = gTableFromMultiple {
+            let pTable = try PTable(gTable)
+            XCTAssertEqual(try pTable["test_double"]!.asDType()[0], Double(11064))
+            XCTAssertEqual(try pTable["test_double"]!.asDType()[19], Double(-11.2))
+        } else {
+            fatalError()
+        }
+    }
+
     static var allTests = [
         ("testCreateAndSaveDoublesToFile", testCreateAndSaveDoublesToFile),
         ("testLoadDoublesFromFile", testLoadDoublesFromFile),
@@ -329,6 +356,7 @@ final class ArrowLibTests: XCTestCase {
         ("testLargeColumns", testLargeColumns),
         ("testBasicMemoryUsage", testBasicMemoryUsage),
         ("testDoubleNans", testDoubleNans),
-        ("testPenguinMemoryAlloctions", testPenguinMemoryAlloctions)
+        ("testPenguinMemoryAlloctions", testPenguinMemoryAlloctions),
+        ("testCSVReading", testCSVReading)
     ]
 }
