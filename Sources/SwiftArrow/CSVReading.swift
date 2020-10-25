@@ -5,6 +5,9 @@ import CArrowLinux
 #endif
 
 public func readCSVs(paths: [String]) throws -> UnsafeMutablePointer<GArrowTable>? {
+    if paths.count == 1 {
+        return try readCSV(path: paths[0])
+    }
     var error: UnsafeMutablePointer<GError>?
     var tables: [UnsafeMutablePointer<GArrowTable>?] = []
     // TODO: Parallelize this for loop
