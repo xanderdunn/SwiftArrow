@@ -16,7 +16,7 @@ let package = Package(
                  from: "0.5.0"),
         .package(name: "Penguin", // Google Brain's Swift version of pandas
                  url: "https://github.com/saeta/penguin.git",
-                 .branch("master"))
+                 .branch("main"))
     ],
     targets: [
         .target(name: "CMemoryHelper", path: "./Sources/CMemoryHelper"),
