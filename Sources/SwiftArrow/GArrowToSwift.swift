@@ -23,7 +23,7 @@ extension PTable {
         }
     }
 
-    init(_ gTable: UnsafeMutablePointer<GArrowTable>) throws {
+    public init(_ gTable: UnsafeMutablePointer<GArrowTable>) throws {
         let numColumns = Int(garrow_table_get_n_columns(gTable))
         var error: UnsafeMutablePointer<GError>?
         let columnNames = try gArrowTableGetSchema(gTable)
