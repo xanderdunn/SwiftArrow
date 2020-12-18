@@ -337,9 +337,9 @@ final class ArrowLibTests: XCTestCase {
 
     func testArrayToArrow() throws {
         let array: [Float] = (0..<10).map { _ in Float.random(in: 0.0...1.0) }
-        let arrayOfArrays: [[Float]] = (0..<5).map { _ in
-                                            (0..<10).map { _ in
-                                                        Float.random(in: 0.0...1.0) }}
+        /*let arrayOfArrays: [[Float]] = (0..<5).map { _ in*/
+                                            /*(0..<10).map { _ in*/
+                                                        /*Float.random(in: 0.0...1.0) }}*/
         try array.toFeather(filePath: "./data/array.feather")
         let arrayFromFeather = try [Float](fromFeather: "./data/array.feather")
         XCTAssertEqual(array, arrayFromFeather)

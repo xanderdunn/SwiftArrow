@@ -38,9 +38,10 @@ extension RandomAccessCollection {
     }
 }
 
-public extension Array where Element == Float {
+// Save any Array of elements that conforms to ArrayArrayElement to feather and load from feather
+public extension Array where Element: ArrowArrayElement {
     func toFeather(filePath: String) throws {
-        let gArray = try Float.toGArrowArray(array: self)
+        let gArray = try Element.toGArrowArray(array: self)
         let gTable = try gArraysToGTable(arrays: [gArray], columns: ["vector"])
         if let gTable = gTable {
             try saveGTableToFeather(gTable, outputPath: filePath)
@@ -53,7 +54,7 @@ public extension Array where Element == Float {
         if let gTable = try loadGTableFromFeather(filePath: filePath),
         let chunkedArray = garrow_table_get_column_data(gTable, Int32(0)),
         let gArray = garrow_chunked_array_get_chunk(chunkedArray, 0) {
-            guard let swiftArray: [Float] = Array(gArray: gArray) else {
+            guard let swiftArray: [Element] = Array(gArray: gArray) else {
                 throw ArrowError.invalidArrayCreation("Couldn't convert Doubles GArrowArray to Swift Array")
             }
             self = swiftArray

@@ -140,13 +140,13 @@ public extension PTable {
     }
 }
 
-protocol ArrowArrayElement: Equatable {
+public protocol ArrowArrayElement: Equatable {
     static func toGArrowArray(array: [Self]) throws -> UnsafeMutablePointer<GArrowArray>?
     static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Self]
 }
 
 extension Date: ArrowArrayElement {
-    static func toGArrowArray(array: [Date]) throws -> UnsafeMutablePointer<GArrowArray>? {
+    public static func toGArrowArray(array: [Date]) throws -> UnsafeMutablePointer<GArrowArray>? {
         var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         let timestampDataType = garrow_timestamp_data_type_new(GARROW_TIME_UNIT_NANO)
@@ -169,7 +169,7 @@ extension Date: ArrowArrayElement {
         return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Date] {
+    public static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Date] {
         #if canImport(Darwin)
         let n: Int64 = garrow_array_get_length(gArray)
         #else
@@ -189,7 +189,7 @@ extension Date: ArrowArrayElement {
 }
 
 extension String: ArrowArrayElement {
-    static func toGArrowArray(array: [String]) throws -> UnsafeMutablePointer<GArrowArray>? {
+    public static func toGArrowArray(array: [String]) throws -> UnsafeMutablePointer<GArrowArray>? {
         var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         let arrayBuilder: UnsafeMutablePointer<GArrowStringArrayBuilder>? = garrow_string_array_builder_new()
@@ -209,7 +209,7 @@ extension String: ArrowArrayElement {
         return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [String] {
+    public static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [String] {
         #if canImport(Darwin)
         let n: Int64 = garrow_array_get_length(gArray)
         #else
@@ -225,7 +225,7 @@ extension String: ArrowArrayElement {
 }
 
 extension Double: ArrowArrayElement {
-    static func toGArrowArray(array: [Double]) throws -> UnsafeMutablePointer<GArrowArray>? {
+    public static func toGArrowArray(array: [Double]) throws -> UnsafeMutablePointer<GArrowArray>? {
         var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         let arrayBuilder: UnsafeMutablePointer<GArrowDoubleArrayBuilder>? = garrow_double_array_builder_new()
@@ -245,7 +245,7 @@ extension Double: ArrowArrayElement {
         return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Double] {
+    public static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Double] {
         #if canImport(Darwin)
         let n: Int64 = garrow_array_get_length(gArray)
         #else
@@ -291,7 +291,7 @@ where Element: ArrowArrayElement {
 }
 
 extension Float: ArrowArrayElement {
-    static func toGArrowArray(array: [Float]) throws -> UnsafeMutablePointer<GArrowArray>? {
+    public static func toGArrowArray(array: [Float]) throws -> UnsafeMutablePointer<GArrowArray>? {
         var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         let arrayBuilder: UnsafeMutablePointer<GArrowFloatArrayBuilder>? = garrow_float_array_builder_new()
@@ -311,7 +311,7 @@ extension Float: ArrowArrayElement {
         return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Float] {
+    public static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Float] {
         #if canImport(Darwin)
         let n: Int64 = garrow_array_get_length(gArray)
         #else
@@ -327,7 +327,7 @@ extension Float: ArrowArrayElement {
 }
 
 extension Int: ArrowArrayElement {
-    static func toGArrowArray(array: [Int]) throws -> UnsafeMutablePointer<GArrowArray>? {
+    public static func toGArrowArray(array: [Int]) throws -> UnsafeMutablePointer<GArrowArray>? {
         var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         let arrayBuilder: UnsafeMutablePointer<GArrowInt64ArrayBuilder>? = garrow_int64_array_builder_new()
@@ -351,7 +351,7 @@ extension Int: ArrowArrayElement {
         return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Int] {
+    public static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Int] {
         #if canImport(Darwin)
         let n: Int64 = garrow_array_get_length(gArray)
         #else
@@ -371,7 +371,7 @@ extension Int: ArrowArrayElement {
 }
 
 extension Int64: ArrowArrayElement {
-    static func toGArrowArray(array: [Int64]) throws -> UnsafeMutablePointer<GArrowArray>? {
+    public static func toGArrowArray(array: [Int64]) throws -> UnsafeMutablePointer<GArrowArray>? {
         var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         let arrayBuilder: UnsafeMutablePointer<GArrowInt64ArrayBuilder>? = garrow_int64_array_builder_new()
@@ -403,7 +403,7 @@ extension Int64: ArrowArrayElement {
         return returnValue
     }
 
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Int64] {
+    public static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Int64] {
         #if canImport(Darwin)
         let n: Int64 = garrow_array_get_length(gArray)
         #else
@@ -423,7 +423,7 @@ extension Int64: ArrowArrayElement {
 }
 
 extension Bool: ArrowArrayElement {
-    static func toGArrowArray(array: [Bool]) throws -> UnsafeMutablePointer<GArrowArray>? {
+    public static func toGArrowArray(array: [Bool]) throws -> UnsafeMutablePointer<GArrowArray>? {
         var error: UnsafeMutablePointer<GError>?
         var result: gboolean
         let arrayBuilder: UnsafeMutablePointer<GArrowBooleanArrayBuilder>? = garrow_boolean_array_builder_new()
@@ -444,7 +444,7 @@ extension Bool: ArrowArrayElement {
         return try completeGArrayBuilding(arrayBuilder: GARROW_ARRAY_BUILDER(arrayBuilder))
     }
 
-    static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Bool] {
+    public static func fromGArrowArray(_ gArray: UnsafeMutablePointer<GArrowArray>?) -> [Bool] {
         #if canImport(Darwin)
         let n: Int64 = garrow_array_get_length(gArray)
         #else
