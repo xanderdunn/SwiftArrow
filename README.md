@@ -23,6 +23,7 @@
 ### Usage
 
 #### Swift Arrays to/from .feather:
+- Data types supported for array saving to and from .feather: Date, String, Double, Float, Int, Int64, Bool, 
 ```swift
 let array: [Float] = (0..<10).map { _ in Float.random(in: 0.0...1.0) }
 try array.toFeather(filePath: "./data/array.feather")

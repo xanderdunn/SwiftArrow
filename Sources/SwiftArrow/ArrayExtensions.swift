@@ -52,12 +52,16 @@ public extension Array where Element: ArrowArrayElement {
 
     init(fromFeather filePath: String) throws {
         if let gTable = try loadGTableFromFeather(filePath: filePath),
-        let chunkedArray = garrow_table_get_column_data(gTable, Int32(0)),
-        let gArray = garrow_chunked_array_get_chunk(chunkedArray, 0) {
-            guard let swiftArray: [Element] = Array(gArray: gArray) else {
-                throw ArrowError.invalidArrayCreation("Couldn't convert Doubles GArrowArray to Swift Array")
+        let chunkedArray = garrow_table_get_column_data(gTable, Int32(0)) {
+            let gArrays = gArrowChunkedArrayToGArrow(chunkedArray)
+            var result: [Element] = []
+            for gArray in gArrays {
+                guard let swiftArray: [Element] = Array(gArray: gArray) else {
+                    throw ArrowError.invalidArrayCreation("Couldn't convert Doubles GArrowArray to Swift Array")
+                }
+                result.append(contentsOf: swiftArray)
             }
-            self = swiftArray
+            self = result
         } else {
             throw ArrowError.failedRead("Failed to read gTable from \(filePath)")
         }
