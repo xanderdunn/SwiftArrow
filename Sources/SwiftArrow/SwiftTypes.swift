@@ -103,7 +103,7 @@ extension PTypedColumn where T == Double {
     }
 }
 
-extension PTable {
+public extension PTable {
     // TODO: How to clean up this typing
     func toFeather(filePath: String) throws {
         var gArrays: [UnsafeMutablePointer<GArrowArray>?] = []
