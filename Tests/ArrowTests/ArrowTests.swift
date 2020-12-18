@@ -64,10 +64,6 @@ final class ArrowLibTests: XCTestCase {
             throw ArrowError.invalidArrayCreation("")
         }
         if let result = result, let result2 = result2 {
-            /*let valuesDecoded: [T] = T.self.fromGArrowArray(result)*/
-            /*XCTAssertEqual(valuesDecoded, values1)*/
-            /*let values2Decoded: [T] = T.self.fromGArrowArray(result2)*/
-            /*XCTAssertEqual(values2Decoded, values2)*/
             // Create table from arrays
             let table = try gArraysToGTable(arrays: [result, result2], columns: columnNames)
             if let table = table {
@@ -79,7 +75,6 @@ final class ArrowLibTests: XCTestCase {
                 let decodedColumn1: PTypedColumn<T> = try columns[columnNames[1]]!.asDType()
                 XCTAssertEqual(decodedColumn0.values, values1)
                 XCTAssertEqual(decodedColumn1.values, values2)
-                // printTable(columns: columns, columnNames: deserializedColumnsNames)
             }
             // Save Table to feather file
             let outputPath = "./test\(T.self).feather"
@@ -279,7 +274,6 @@ final class ArrowLibTests: XCTestCase {
         XCTAssertTrue(getMemoryUsage()! <= initialMemoryUsage + dataMemorySize + memoryCushion)
     }
 
-
     func testDoubleNans() throws {
         let doublesValues: [Double] = [1.22, 0.33, -11.2, Double.nan, Double.nan, 1.44]
         let doublesColumn = PColumn(doublesValues)
@@ -341,6 +335,16 @@ final class ArrowLibTests: XCTestCase {
         }
     }
 
+    func testArrayToArrow() throws {
+        let array: [Float] = (0..<10).map { _ in Float.random(in: 0.0...1.0) }
+        let arrayOfArrays: [[Float]] = (0..<5).map { _ in
+                                            (0..<10).map { _ in
+                                                        Float.random(in: 0.0...1.0) }}
+        try array.toFeather(filePath: "./data/array.feather")
+        let arrayFromFeather = try [Float](fromFeather: "./data/array.feather")
+        XCTAssertEqual(array, arrayFromFeather)
+    }
+
     static var allTests = [
         ("testCreateAndSaveDoublesToFile", testCreateAndSaveDoublesToFile),
         ("testLoadDoublesFromFile", testLoadDoublesFromFile),
@@ -357,6 +361,7 @@ final class ArrowLibTests: XCTestCase {
         ("testBasicMemoryUsage", testBasicMemoryUsage),
         ("testDoubleNans", testDoubleNans),
         ("testPenguinMemoryAlloctions", testPenguinMemoryAlloctions),
-        ("testCSVReading", testCSVReading)
+        ("testCSVReading", testCSVReading),
+        ("testArrayToArrow", testArrayToArrow)
     ]
 }

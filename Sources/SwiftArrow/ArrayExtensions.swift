@@ -1,5 +1,11 @@
 import Foundation
 
+#if canImport(Darwin)
+import CArrowMac
+#else
+import CArrowLinux
+#endif
+
 // From https://gist.github.com/dabrahams/ea5495b4cccc2970cd56e8cfc72ca761
 // This should be considerably faster than the obj.io concurrent map implementation
 // TODO: This large batching number may not work to parallelize very slow jobs like my column reading?
@@ -28,6 +34,31 @@ extension RandomAccessCollection {
                     formIndex(after: &sourceIndex)
                 }
             }
+        }
+    }
+}
+
+public extension Array where Element == Float {
+    func toFeather(filePath: String) throws {
+        let gArray = try Float.toGArrowArray(array: self)
+        let gTable = try gArraysToGTable(arrays: [gArray], columns: ["vector"])
+        if let gTable = gTable {
+            try saveGTableToFeather(gTable, outputPath: filePath)
+        } else {
+            throw ArrowError.invalidTableCreation("Failed to create table from \(self)")
+        }
+    }
+
+    init(fromFeather filePath: String) throws {
+        if let gTable = try loadGTableFromFeather(filePath: filePath),
+        let chunkedArray = garrow_table_get_column_data(gTable, Int32(0)),
+        let gArray = garrow_chunked_array_get_chunk(chunkedArray, 0) {
+            guard let swiftArray: [Float] = Array(gArray: gArray) else {
+                throw ArrowError.invalidArrayCreation("Couldn't convert Doubles GArrowArray to Swift Array")
+            }
+            self = swiftArray
+        } else {
+            throw ArrowError.failedRead("Failed to read gTable from \(filePath)")
         }
     }
 }

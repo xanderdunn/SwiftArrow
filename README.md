@@ -19,3 +19,16 @@
 - Apache Arrow GLib interface documentation [here](https://arrow.apache.org/docs/c_glib/arrow-glib/)
 - Apache Arrow GLib example code [here](https://github.com/apache/arrow/tree/master/c_glib/example)
 - Note that the tests pass on Swift 5.3-RELEASE but do not build on Swift for Tensorflow 0.10. The library itself does successfully build on Swift for Tensorflow 0.10
+
+### Usage
+
+#### Swift Arrays to/from .feather:
+```swift
+let array: [Float] = (0..<10).map { _ in Float.random(in: 0.0...1.0) }
+try array.toFeather(filePath: "./data/array.feather")
+let arrayFromFeather = try [Float](fromFeather: "./data/array.feather")
+```
+
+#### PenguinTables to/from .feather:
+```swift
+```
