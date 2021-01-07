@@ -13,10 +13,10 @@ let package = Package(
     dependencies: [
         .package(name: "SwiftyTextTable",
                  url: "https://github.com/scottrhoyt/SwiftyTextTable.git",
-                 from: "0.5.0"),
+                 from: "0.9.0"),
         .package(name: "Penguin", // Google Brain's Swift version of pandas
                  url: "https://github.com/saeta/penguin.git",
-                 .branch("main"))
+                 .revision("fca2fc0e0581656449f1cee40ec5513f7a957446"))
     ],
     targets: [
         .target(name: "CMemoryHelper", path: "./Sources/CMemoryHelper"),
