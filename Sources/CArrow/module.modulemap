@@ -7,7 +7,7 @@ module CArrowLinux [system] {
 }
 
 module CArrowMac [system] {
-    header "/usr/local/Cellar/apache-arrow-glib/1.0.1/include/arrow-glib/arrow-glib.h"
+    header "/usr/local/Cellar/apache-arrow-glib/3.0.0/include/arrow-glib/arrow-glib.h"
 
     link "arrow-glib"
 

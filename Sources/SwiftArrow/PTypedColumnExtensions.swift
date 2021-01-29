@@ -53,7 +53,7 @@ extension PTypedColumn where T == Bool {
                 result = garrow_boolean_array_builder_append_value(arrayBuilder, Int32(0), &error)
                 try checkForError(result: result, error: error)
             } else {
-                result = garrow_boolean_array_builder_append_null(arrayBuilder, &error)
+                result = garrow_array_builder_append_null(GARROW_ARRAY_BUILDER(arrayBuilder), &error)
                 try checkForError(result: result, error: error)
             }
         }
@@ -76,7 +76,7 @@ extension PTypedColumn where T == Int {
                 result = garrow_int64_array_builder_append_value(arrayBuilder, valueTyped, &error)
                 assert(result != 0)
             } else {
-                result = garrow_int64_array_builder_append_null(arrayBuilder, &error)
+                result = garrow_array_builder_append_null(GARROW_ARRAY_BUILDER(arrayBuilder), &error)
                 assert(result != 0)
             }
         }
@@ -94,7 +94,7 @@ extension PTypedColumn where T == Double {
                 result = garrow_double_array_builder_append_value(arrayBuilder, value, &error)
                 try checkForError(result: result, error: error)
             } else {
-                result = garrow_double_array_builder_append_null(arrayBuilder, &error)
+                result = garrow_array_builder_append_null(GARROW_ARRAY_BUILDER(arrayBuilder), &error)
                 try checkForError(result: result, error: error)
             }
         }

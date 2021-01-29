@@ -1,13 +1,16 @@
 ### Installation
+- Required apache-arrow-glib 3.0.0+
 - On Ubuntu 18.04, install Apache Arrow GLib, instructions from [here](https://arrow.apache.org/install/):
     - `sudo apt update`
     - `sudo apt install -y -V ca-certificates lsb-release wget`
-    - `wget https://apache.bintray.com/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-archive-keyring-latest-$(lsb_release --codename --short).deb`
+    -apache-arrow-glib `wget https://apache.bintray.com/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-archive-keyring-latest-$(lsb_release --codename --short).deb`
     - `sudo apt install -y -V ./apache-arrow-archive-keyring-latest-$(lsb_release --codename --short).deb`
     - `sudo apt update`
     - `sudo apt install -y -V libarrow-glib-dev`
+    - To see which version is installed: `sudo apt list libarrow-glib-dev`
 - On macOS:
     - `brew install apache-arrow-glib`
+    - To see which version is installed: `brew list --versions apache-arrow-glib`
 - Generate and build the Swift files:
     - `swift build`
 - Test:
